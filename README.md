@@ -1,40 +1,46 @@
-# 📈 Market Microstructure Simulator  
+# 📈 Market Microstructure Simulator
 
 A **market microstructure simulation framework** for modeling limit order books, order flow, and agent-based trading strategies.  
-This project is designed for experimenting with **execution quality**, **PnL dynamics**, and **liquidity provision/taking** in realistic trading environments.  
+This project is designed for experimenting with **execution quality**, **PnL dynamics**, and **liquidity provision/taking** in realistic trading environments.
 
 ---
 
-## 🚀 Features  
+## 🚀 Features
 
-- 📊 **Limit Order Book (LOB)**
-  - Supports limit, market, and cancel events.  
-  - Tracks order queue dynamics at each price level.  
+-   📊 **Limit Order Book (LOB)**
 
-- 🎲 **Order Flow Generators**  
-  - Configurable noise traders with customizable arrival and size distributions.  
-  - Bernoulli discrete arrivals, lognormal size, and discrete Zipf/geometric price distributions.  
+    -   Supports limit, market, and cancel events.
+    -   Tracks order queue dynamics at each price level.
 
-- 🤖 **Agent-Based Strategies**  
-  - **Market Makers** (quote provision, spread control).  
-  - **Liquidity Takers**.  
-  - Easily extendable via a `BaseStrategy` interface.  
+-   🎲 **Order Flow Generators**
 
-- ⚡ **Execution Algorithms**  
-  - **TWAP** (Time-Weighted Average Price).  
-  - Custom scheduling logic supported.  
+    -   Configurable noise traders with customizable arrival and size distributions.
+    -   Bernoulli discrete arrivals, lognormal size, and discrete Zipf/geometric price distributions.
 
-- 💹 **Performance Tracking**  
-  - Realized and unrealized **PnL**.  
-  - **Inventory risk** exposure.  
-  - **Slippage**: average per share and total cost.  
+-   🤖 **Agent-Based Strategies**
 
-- 🧩 **Extensible & Modular**  
-  - Add new order flow models or trading strategies with minimal boilerplate.  
+    -   **Market Makers** (quote provision, spread control).
+    -   **Liquidity Takers**.
+    -   Easily extendable via a `BaseStrategy` interface.
+
+-   ⚡ **Execution Algorithms**
+
+    -   **TWAP** (Time-Weighted Average Price).
+    -   Custom scheduling logic supported.
+
+-   💹 **Performance Tracking**
+
+    -   Realized and unrealized **PnL**.
+    -   **Inventory risk** exposure.
+    -   **Slippage**: average per share and total cost.
+
+-   🧩 **Extensible & Modular**
+    -   Add new order flow models or trading strategies with minimal boilerplate.
 
 ---
 
-## 📂 Project Structure  
+## 📂 Project Structure
+
 ```
 market-microstructure/
 │── data/                    # Metrics and snapshots
@@ -47,14 +53,15 @@ market-microstructure/
 │       ├── taker.py         # Liquidity-taking strategies
 │   ├── engine/              # Core simulation engine & limit order book
 │   ├── utils/               # Helpers, logging, config
-│       ├── plotting.py      # Plotting 
+│       ├── plotting.py      # Plotting
 │── main.py                  # Example simulation runner
 │── requirements.txt         # Project requirements
 ```
 
 ---
 
-## 📊 Example Usage  
+## 📊 Example Usage
+
 ```python
 from src.engine import Simulator, OrderSide
 from src.config import CONFIG
@@ -80,7 +87,7 @@ twap_taker.schedule_twap(
   side=OrderSide.BUY,
   )
 
-simulator = Simulator(CONFIG, rng, agents=[single_taker])
+simulator = Simulator(CONFIG, rng, agents=[twap_taker])
 simulator.populate_initial_book(n_orders=1000)
 
 simulator.run()
@@ -106,24 +113,26 @@ The simulator automatically records useful metrics for each strategy and the who
 
 ### 📊 Strategy metrics
 
-- PnL
-- Inventory (long/short exposure)
-- Slippage
-  - Average per share (execution quality)
-  - Total cost (absolute PnL impact)
- 
+-   PnL
+-   Inventory (long/short exposure)
+-   Slippage
+    -   Average per share (execution quality)
+    -   Total cost (absolute PnL impact)
+
 ### 🌐 Market metrics
 
 > Visualizations with `plotting.py`
-For every DT in the time horizon :
-- Best bids, asks, and mid prices
-- Spread
-- Bid and ask size
-- Bid and ask depth
-- Trade volume
-- \# of trades
+> For every DT in the time horizon :
+
+-   Best bids, asks, and mid prices
+-   Spread
+-   Bid and ask size
+-   Bid and ask depth
+-   Trade volume
+-   Number of trades
 
 ## 🔧 Installation
+
 ```bash
 git clone https://github.com/yourusername/market-microstructure.git
 cd market-microstructure
@@ -132,11 +141,11 @@ pip install -r requirements.txt
 
 ## 🎯 Roadmap
 
-- Extend trading agents (momentum, noise taker, reinforcement-learning)
-- Extend execution algos (IS, POV, VWAP)
-- Extend strategy metrics
-- Real market data replay support
-  
+-   Extend trading agents (momentum, noise taker, reinforcement-learning)
+-   Extend execution algos (IS, POV, VWAP)
+-   Extend strategy metrics
+-   Real market data replay support
+
 ## 📜 License
 
 MIT License. See LICENSE for details.
@@ -144,4 +153,3 @@ MIT License. See LICENSE for details.
 ## 🤝 Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request if you’d like to add a feature or improve the simulator.
-
