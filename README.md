@@ -7,7 +7,7 @@ This project is designed for experimenting with **execution quality**, **PnL dyn
 
 ## 🚀 Features
 
--   📊 **Limit Order Book (LOB)**
+-   📔 **Limit Order Book (LOB)**
 
     -   Supports limit, market, and cancel events.
     -   Tracks order queue dynamics at each price level.
@@ -60,7 +60,7 @@ market-microstructure/
 
 ---
 
-## 📊 Example Usage
+## Example Usage
 
 ```python
 from src.engine import Simulator, OrderSide
