@@ -7,22 +7,21 @@ This project is designed for experimenting with **execution quality**, **PnL dyn
 
 ## 🚀 Features  
 
-- 📊 **Limit Order Book (LOB)**  
+- 📊 **Limit Order Book (LOB)**
   - Supports limit, market, and cancel events.  
   - Tracks order queue dynamics at each price level.  
 
 - 🎲 **Order Flow Generators**  
   - Configurable noise traders with customizable arrival and size distributions.  
-  - Poisson arrivals, uniform/lognormal size distributions, and more.  
+  - Bernoulli discrete arrivals, lognormal size, and discrete Zipf/geometric price distributions.  
 
 - 🤖 **Agent-Based Strategies**  
   - **Market Makers** (quote provision, spread control).  
-  - **Liquidity Takers** (VWAP, TWAP execution, momentum traders, noise takers).  
+  - **Liquidity Takers**.  
   - Easily extendable via a `BaseStrategy` interface.  
 
 - ⚡ **Execution Algorithms**  
   - **TWAP** (Time-Weighted Average Price).  
-  - **VWAP** (Volume-Weighted Average Price).  
   - Custom scheduling logic supported.  
 
 - 💹 **Performance Tracking**  
@@ -38,20 +37,24 @@ This project is designed for experimenting with **execution quality**, **PnL dyn
 ## 📂 Project Structure  
 ```
 market-microstructure/
-│── orderflow/           # Random/noise order generators & distributions
-│── strategies/          # Agent-based strategies (makers, takers, execution algos)
-│   ├── base_strategy.py # Abstract base for all strategies
-│   ├── market_maker.py  # Market-making strategies
-│   ├── taker.py         # Liquidity-taking strategies
-│── engine/              # Core simulation engine & limit order book
-│── utils/               # Helpers, logging, config
-│── main.py              # Example simulation runner
+│── data/                    # Metrics and snapshots
+│── logs/                    # Simulation logs
+│── src/                     # Core implementation
+│   ├── config.py            # Simulation parameters
+│   ├── orderflow/           # Random/noise order generators & distributions
+│   ├── strategies/          # Agent-based strategies (makers, takers, execution algos)
+│       ├── market_maker.py  # Market-making strategies
+│       ├── taker.py         # Liquidity-taking strategies
+│   ├── engine/              # Core simulation engine & limit order book
+│   ├── utils/               # Helpers, logging, config
+│       ├── plotting.py      # Plotting 
+│── main.py                  # Example simulation runner
+│── requirements.txt         # Project requirements
 ```
 
 ---
 
 ## 📊 Example Usage  
-
 ```python
 from src.engine import Simulator, OrderSide
 from src.config import CONFIG
@@ -80,7 +83,7 @@ twap_taker.schedule_twap(
 simulator = Simulator(CONFIG, rng, agents=[single_taker])
 simulator.populate_initial_book(n_orders=1000)
 
-simulator.run(real_time=False)
+simulator.run()
 
 metrics = simulator.metrics.get_dataframe()
 order_book_snapshot = simulator.order_book.get_dataframe()
@@ -96,3 +99,49 @@ print(f"Taker Total Slippage: {twap_taker.compute_total_slippage():.2f} $")
 
 plotting.plot_all(metrics, order_book_snapshot)
 ```
+
+## 📈 Metrics
+
+The simulator automatically records useful metrics for each strategy and the whole market.
+
+### 📊 Strategy metrics
+
+- PnL
+- Inventory (long/short exposure)
+- Slippage
+  - Average per share (execution quality)
+  - Total cost (absolute PnL impact)
+ 
+### 🌐 Market metrics
+
+> Visualizations with `plotting.py`
+For every DT in the time horizon :
+- Best bids, asks, and mid prices
+- Spread
+- Bid and ask size
+- Bid and ask depth
+- Trade volume
+- \# of trades
+
+## 🔧 Installation
+```bash
+git clone https://github.com/yourusername/market-microstructure.git
+cd market-microstructure
+pip install -r requirements.txt
+```
+
+## 🎯 Roadmap
+
+- Extend trading agents (momentum, noise taker, reinforcement-learning)
+- Extend execution algos (IS, POV, VWAP)
+- Extend strategy metrics
+- Real market data replay support
+  
+## 📜 License
+
+MIT License. See LICENSE for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you’d like to add a feature or improve the simulator.
+
