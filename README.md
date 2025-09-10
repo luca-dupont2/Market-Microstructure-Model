@@ -1,4 +1,4 @@
-# 📈 Market Microstructure Simulator
+# Market Microstructure Simulator
 
 A **market microstructure simulation framework** for modeling limit order books, order flow, and agent-based trading strategies.  
 This project is designed for experimenting with **execution quality**, **PnL dynamics**, and **liquidity provision/taking** in realistic trading environments.
