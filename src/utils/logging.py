@@ -8,6 +8,7 @@ class SimLogger:
         self,
         name="market_sim",
         log_file: bool = False,
+        filename=None,
         console_level=logging.INFO,
         level=logging.DEBUG,
     ):
@@ -30,8 +31,11 @@ class SimLogger:
         handler.setLevel(console_level)
         # File handler
         if log_file:
-            now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-            filename = f"logs/{now}-run.log"
+            if not filename:
+                now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+                filename = f"logs/{now}-run.log"
+            else:
+                filename = f"logs/{filename}.log"
             file_handler = logging.FileHandler(filename)
             file_handler.setFormatter(formatter)
             file_handler.setLevel(level)

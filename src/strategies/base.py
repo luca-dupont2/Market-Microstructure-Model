@@ -12,7 +12,7 @@ class BaseStrategy:
         self.inventory = initial_inventory
         self.config = config
 
-    def step(self, book, time):
+    def step(self, time, book=None):
         """
         Decide on the next action given current state of the order book.
         Must return an order dict or None.

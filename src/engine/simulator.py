@@ -16,6 +16,7 @@ class Simulator:
             level=config["SIM_PARAMS"]["log_level"],
             console_level=config["SIM_PARAMS"]["console_log_level"],
             log_file=config["SIM_PARAMS"]["log_file"],
+            filename=config["SIM_PARAMS"]["log_filename"],
         )
         self.rng = rng
 
@@ -113,10 +114,12 @@ class Simulator:
         if df is None:
             print("No metrics to save.")
             return
-        
-        if not filename :
+
+        if not filename:
             now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
             filename = f"data/{now}-metrics.csv"
+        else:
+            filename = f"data/{filename}.csv"
 
         df.to_csv(filename, index=False)
         print(f"Metrics saved in {filename}")
@@ -127,9 +130,11 @@ class Simulator:
             print("No order book data to save.")
             return
 
-        if not filename :
+        if not filename:
             now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-            filename = f"data/{now}-orderbook.csv" 
+            filename = f"data/{now}-orderbook.csv"
+        else:
+            filename = f"data/{filename}.csv"
 
         df.to_csv(filename, index=False)
         print(f"Order book snapshot saved in {filename}")

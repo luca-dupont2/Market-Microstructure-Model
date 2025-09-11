@@ -45,7 +45,7 @@ class TWAPSingleTaker(BaseStrategy):
 
         self.slippage.append((slippage, trade.size))
 
-    def step(self, time):
+    def step(self, time, book=None):
         if self.schedule and time >= self.schedule[0][0]:
             _, volume, side = self.schedule.pop(0)
 
@@ -113,7 +113,7 @@ class SingleTaker(BaseStrategy):
         self.parent_start_price = current_price
         self.order_placed = False
 
-    def step(self, time):
+    def step(self, time, book=None):
         if time >= self.schedule[0] and not self.order_placed:
             self.order_placed = True
 

@@ -6,7 +6,8 @@ CONFIG = {
         "initial_price": 100,
         "record_interval": 30,  # record state interval
         "random_seed": 42,
-        "log_file": False,
+        "log_file": True,
+        "log_filename": "example-log",
         "log_level": "DEBUG",
         "console_log_level": "INFO",
     },
