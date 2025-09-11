@@ -30,7 +30,6 @@ class Generator:
         self.max_size = config["ORDERFLOW_PARAMS"]["size_distribution"]["max_size"]
 
         # Price placement parameters
-        self.drift = config["ORDERFLOW_PARAMS"]["placement_distribution"]["drift"]
         self.pointmass = config["ORDERFLOW_PARAMS"]["placement_distribution"][
             "r_pointmass"
         ]
@@ -71,7 +70,7 @@ class Generator:
             return self.rng.uniform(self.initial_price, self.initial_price * 1.005)
 
     def gen_price(self, best_price):
-        direction = 1 if self.rng.uniform(0, 1) < self.drift else -1
+        direction = self.rng.choice([1, -1])
         if self.rng.bernoulli(self.pointmass):
             price_change = self.geometric.sample()
         else:
