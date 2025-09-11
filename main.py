@@ -30,8 +30,8 @@ simulator.run()
 metrics = simulator.metrics.get_dataframe()
 order_book_snapshot = simulator.order_book.get_dataframe()
 
-simulator.save_order_book()
-simulator.save_metrics()
+simulator.save_order_book("example-orderbook.csv")
+simulator.save_metrics("example-metrics.csv")
 
 print("\nTWAP Taker results")
 
