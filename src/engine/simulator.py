@@ -108,22 +108,28 @@ class Simulator:
         t = self.current_time
         self.metrics.record(t, self.order_book, events)
 
-    def save_metrics(self):
+    def save_metrics(self, filename=None):
         df = self.metrics.get_dataframe()
-        now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-        filename = f"data/{now}-metrics.csv"
+        if df is None:
+            print("No metrics to save.")
+            return
+        
+        if not filename :
+            now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+            filename = f"data/{now}-metrics.csv"
 
         df.to_csv(filename, index=False)
         print(f"Metrics saved in {filename}")
 
-    def save_order_book(self):
+    def save_order_book(self, filename=None):
         df = self.order_book.get_dataframe()
         if df is None:
             print("No order book data to save.")
             return
 
-        now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-        filename = f"data/{now}-orderbook.csv"
+        if not filename :
+            now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+            filename = f"data/{now}-orderbook.csv" 
 
         df.to_csv(filename, index=False)
         print(f"Order book snapshot saved in {filename}")
