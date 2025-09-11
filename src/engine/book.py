@@ -2,7 +2,8 @@ from .order import OrderSide, OrderType, Order
 import heapq
 import warnings
 import pandas as pd
-from .events import *
+from .events import EventQueue, create_new_order_event, create_trade_event, create_cancel_order_event, Event
+from datetime import datetime
 
 
 class LimitOrderBook:
