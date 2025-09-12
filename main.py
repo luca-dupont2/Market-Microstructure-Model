@@ -21,9 +21,11 @@ manual_taker = ManualTaker(
 
 manual_taker.schedule_order(1800, 600, OrderSide.BUY)
 
+manual_taker.schedule_order(1800, 700, OrderSide.SELL)
+
 
 simulator = Simulator(CONFIG, rng, agents=[manual_taker])
-simulator.populate_initial_book(n_orders=500)
+simulator.populate_initial_book(n_orders=800)
 
 simulator.run()
 

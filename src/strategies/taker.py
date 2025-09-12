@@ -19,13 +19,11 @@ class ManualTaker(BaseStrategy):
         self.slippage = []
         self.parent_price = 0
 
-    def schedule_order(self, schedule_time, total_volume, side):
+    def schedule_order(self, *args, **kwargs):
         self.parent_price = 0
-        self.schedule += self.execution_strategy.schedule_order(
-            schedule_time=schedule_time,
-            total_volume=total_volume,
-            side=side,
-        )
+        self.schedule += self.execution_strategy.schedule_order(*args, **kwargs)
+
+        self.schedule.sort(key=lambda x: x[0])  # Sort by time
 
     def on_trade(self, trade):
         slippage = self.parent_price - trade.price
