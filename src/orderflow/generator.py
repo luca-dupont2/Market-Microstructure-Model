@@ -109,8 +109,8 @@ class Generator:
         elif not bid_price and side == OrderSide.SELL:
             price = self.gen_price(ask_price)
         elif side == OrderSide.BUY:
-            price = self.gen_price(bid_price)
-        else:  # side == OrderSide.SELL
             price = self.gen_price(ask_price)
+        else:  # side == OrderSide.SELL
+            price = self.gen_price(bid_price)
 
         return Order(side=side, price=price, size=size, type=type)
