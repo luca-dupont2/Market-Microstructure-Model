@@ -33,6 +33,9 @@ class Order:
         self.timestamp = datetime.now()
 
     def get_price(self):
+        if self.id == -1:
+            return 0
+        
         if self.side == OrderSide.BUY:
             return -self.price
         return self.price
