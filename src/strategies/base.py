@@ -5,26 +5,19 @@ class BaseStrategy:
     Provides a consistent interface for Makers, Takers, or hybrids.
     """
 
-    def __init__(self, config, id=None, initial_cash=10000, initial_inventory=0):
+    def __init__(
+        self,
+        execution_strategy,
+        id=None,
+        initial_cash=10000,
+        initial_inventory=0,
+    ):
         self.id = id or self.__class__.__name__
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.inventory = initial_inventory
-        self.config = config
-
-    def step(self, time, book=None):
-        """
-        Decide on the next action given current state of the order book.
-        Must return an order dict or None.
-
-        Args:
-            book: reference to current order book
-            time: current simulation time
-
-        Returns:
-            order dict or None
-        """
-        raise NotImplementedError("Subclasses must implement step().")
+        self.execution_strategy = execution_strategy
+        self.schedule = []
 
     def on_trade(self, trade):
         """

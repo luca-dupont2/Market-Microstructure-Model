@@ -1,29 +1,29 @@
 from src.engine import Simulator, OrderSide
 from src.config import CONFIG
 from src.utils import plotting, RNG
-from src.strategies import TWAPSingleTaker
+from src.strategies import ManualTaker, TWAPExecution, BlockExecution
 
 seed = CONFIG["SIM_PARAMS"]["random_seed"]
+intervals = CONFIG["STRATEGY_PARAMS"]["taker"]["twap"]["intervals"]
+duration = CONFIG["STRATEGY_PARAMS"]["taker"]["twap"]["duration"]
 
-rng = RNG(seed)
+rng = RNG(None)
 
-twap_taker = TWAPSingleTaker(
-    rng=rng,
-    config=CONFIG,
+execution_strategy = TWAPExecution(rng, intervals=intervals, duration=duration)
+# execution_strategy = BlockExecution(rng)
+
+manual_taker = ManualTaker(
     initial_cash=100_000,
     initial_inventory=0,
-    id="TWAP_Taker_1",
+    id="Manual_Taker_1",
+    execution_strategy=execution_strategy,
 )
 
-twap_taker.schedule_twap(
-    schedule_time=1800.0,
-    current_price=CONFIG["SIM_PARAMS"]["initial_price"],
-    total_volume=600,
-    side=OrderSide.BUY,
-)
+manual_taker.schedule_order(1800, 600, OrderSide.BUY)
 
-simulator = Simulator(CONFIG, rng, agents=[twap_taker])
-simulator.populate_initial_book(n_orders=1000)
+
+simulator = Simulator(CONFIG, rng, agents=[manual_taker])
+simulator.populate_initial_book(n_orders=500)
 
 simulator.run()
 
@@ -33,10 +33,27 @@ order_book_snapshot = simulator.order_book.get_dataframe()
 # simulator.save_order_book("example-orderbook.csv")
 # simulator.save_metrics("example-metrics.csv")
 
-print("\nTWAP Taker results")
+print("\nManual Taker results with TWAP")
 
-print(f"Taker PnL: {twap_taker.total_pnl(simulator.order_book.mid_price())}")
-print(f"Taker Avg Slippage: {twap_taker.compute_average_slippage():.2f} $/share")
-print(f"Taker Total Slippage: {twap_taker.compute_total_slippage():.2f} $")
+print(f"Taker PnL: {manual_taker.total_pnl(simulator.order_book.mid_price())}")
+print(f"Taker Avg Slippage: {manual_taker.compute_average_slippage():.2f} $/share")
+print(f"Taker Total Slippage: {manual_taker.compute_total_slippage():.2f} $")
 
-plotting.plot_all(metrics, order_book_snapshot)
+
+manual_taker.reset(100_000, 0)
+manual_taker.execution_strategy = BlockExecution(rng)
+manual_taker.schedule_order(1800, 600, OrderSide.BUY)
+
+simulator.reset(agents=[manual_taker])
+simulator.populate_initial_book(n_orders=500)
+
+simulator.run()
+
+metrics = simulator.metrics.get_dataframe()
+order_book_snapshot = simulator.order_book.get_dataframe()
+
+print("\nManual Taker results with Block Execution")
+
+print(f"Taker PnL: {manual_taker.total_pnl(simulator.order_book.mid_price())}")
+print(f"Taker Avg Slippage: {manual_taker.compute_average_slippage():.2f} $/share")
+print(f"Taker Total Slippage: {manual_taker.compute_total_slippage():.2f} $")

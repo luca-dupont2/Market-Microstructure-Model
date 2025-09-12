@@ -1,4 +1,4 @@
-ORDER_DRIFT = 0.004  # Increase in probability of placing a buy order vs sell order
+ORDER_DRIFT = 0.0  # Increase in probability of placing a buy order vs sell order
 
 CONFIG = {
     "SIM_PARAMS": {

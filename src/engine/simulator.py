@@ -89,7 +89,7 @@ class Simulator:
 
     def strategy_step(self):
         for agent in self.agents:
-            order = agent.step(self.current_time)
+            order = agent.step(self.current_time, self.order_book)
 
             if order:
                 events = self.order_book.process_order(order)
@@ -146,7 +146,6 @@ class Simulator:
         self.simlogger.logger.info("Starting simulation...")
 
         while self.current_time < T_sim:
-            start_time = None
 
             self.step()
 
