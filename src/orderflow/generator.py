@@ -102,15 +102,20 @@ class Generator:
 
         # Price generation for LIMIT orders
         # Relies on the best price on the SAME side of the book if possible, else uses opposite book, else initial price
-        if not ask_price and not bid_price:
-            price = self.gen_price(self.initial_price)
-        elif not ask_price and side == OrderSide.BUY:
-            price = self.gen_price(bid_price)
-        elif not bid_price and side == OrderSide.SELL:
-            price = self.gen_price(ask_price)
-        elif side == OrderSide.BUY:
-            price = self.gen_price(ask_price)
-        else:  # side == OrderSide.SELL
-            price = self.gen_price(bid_price)
+
+        if side == OrderSide.BUY:
+            if bid_price:
+                price = self.gen_price(bid_price)
+            elif ask_price:
+                price = self.gen_price(ask_price)
+            else:
+                price = self.gen_price(self.initial_price)
+        else:
+            if ask_price:
+                price = self.gen_price(ask_price)
+            elif bid_price:
+                price = self.gen_price(bid_price)
+            else:
+                price = self.gen_price(self.initial_price)
 
         return Order(side=side, price=price, size=size, type=type)
