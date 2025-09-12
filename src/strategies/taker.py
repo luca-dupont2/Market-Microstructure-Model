@@ -1,4 +1,4 @@
-from .base import BaseStrategy
+from .base_strategy import BaseStrategy
 from ..engine.order import OrderType, OrderSide, Order
 
 
