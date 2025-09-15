@@ -5,41 +5,41 @@ This project is designed for experimenting with **execution quality**, **PnL dyn
 
 ---
 
-## 🚀 Features
+## Features
 
--   📔 **Limit Order Book (LOB)**
+-   **Limit Order Book (LOB)**
 
     -   Supports limit, market, and cancel events.
     -   Tracks order queue dynamics at each price level.
 
--   🎲 **Order Flow Generators**
+-   **Order Flow Generators**
 
     -   Configurable noise traders with customizable arrival and size distributions.
     -   Bernoulli discrete arrivals, lognormal size, and discrete Zipf/geometric price distributions.
 
--   🤖 **Agent-Based Strategies**
+-   **Agent-Based Strategies**
 
     -   **Market Makers** (quote provision, spread control).
     -   **Liquidity Takers**.
     -   Easily extendable via a `BaseStrategy` interface.
 
--   ⚡ **Execution Algorithms**
+-   **Execution Algorithms**
 
     -   **TWAP** (Time-Weighted Average Price).
     -   Custom scheduling logic supported.
 
--   💹 **Performance Tracking**
+-   **Performance Tracking**
 
     -   Realized and unrealized **PnL**.
     -   **Inventory risk** exposure.
     -   **Slippage**: average per share and total cost.
 
--   🧩 **Extensible & Modular**
-    -   Add new order flow models or trading strategies with minimal boilerplate.
+-   **Extensible & Modular**
+    -   Add new order flow models, trading strategies, or execution algorithms with minimal boilerplate.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 market-microstructure/
@@ -105,7 +105,7 @@ print(f"Taker Total Slippage: {manual_taker.compute_total_slippage():.2f} $")
 plotting.plot_all(metrics, order_book_snapshot)
 ```
 
-## 📈 Metrics
+## Metrics
 
 The simulator automatically records useful metrics for each strategy and the whole market.
 
@@ -129,7 +129,7 @@ The simulator automatically records useful metrics for each strategy and the who
 -   Trade volume
 -   Number of trades
 
-## 🔧 Installation
+## Installation
 
 ```bash
 git clone https://github.com/yourusername/market-microstructure.git
@@ -137,17 +137,17 @@ cd market-microstructure
 pip install -r requirements.txt
 ```
 
-## 🎯 Roadmap
+## Roadmap
 
 -   Extend trading agents (momentum, noise taker, reinforcement-learning)
 -   Extend execution algos (IS, POV, VWAP)
 -   Extend strategy metrics
 -   Real market data replay support
 
-## 📜 License
+## License
 
-MIT License. See LICENSE for details.
+MIT License.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request if you’d like to add a feature or improve the simulator.
