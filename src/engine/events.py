@@ -32,12 +32,12 @@ class Event:
 
 @dataclass
 class NewOrderEvent(Event):
-    order_id: int
+    order_id: int | str
     side: OrderSide
     size: int
     price: float | None
     order_type: OrderType
-    parent_order_id: int
+    parent_order_id: int | str
 
     def __repr__(self) -> str:
         return f"NewOrderEvent(order_id={self.order_id}, side={self.side}, size={self.size}, price={self.price}, order_type={self.order_type}, timestamp={self.timestamp})"
@@ -45,7 +45,7 @@ class NewOrderEvent(Event):
 
 @dataclass
 class CancelOrderEvent(Event):
-    order_id: int
+    order_id: int | str
 
     def __repr__(self) -> str:
         return f"CancelOrderEvent(order_id={self.order_id}, timestamp={self.timestamp})"
@@ -53,12 +53,12 @@ class CancelOrderEvent(Event):
 
 @dataclass
 class TradeEvent(Event):
-    trade_id: int
+    trade_id: int | str
     price: float
     size: int
-    buy_order_id: int
-    sell_order_id: int
-    parent_order_id: int
+    buy_order_id: int | str
+    sell_order_id: int | str
+    parent_order_id: int | str
 
     def __repr__(self) -> str:
         return f"TradeEvent(trade_id={self.trade_id}, price={self.price}, size={self.size}, buy_order_id={self.buy_order_id}, sell_order_id={self.sell_order_id}, timestamp={self.timestamp})"

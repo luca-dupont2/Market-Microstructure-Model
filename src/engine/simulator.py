@@ -47,11 +47,6 @@ class Simulator:
 
             self.simlogger.log_order(order_event)
 
-    def log_events(self, events):
-        for event in events:
-            if event.type == EventType.TRADE:
-                self.simlogger.log_trade(event)
-
     def order_flow_step(self):
         best_ask = self.order_book.best_ask().get_price()
         best_bid = self.order_book.best_bid().get_price()
@@ -81,11 +76,7 @@ class Simulator:
         events = self.order_book.process_order(order)
 
         self.simlogger.log_order(order)
-
-        if type(events) == list and events:
-            for event in events:
-                if event.type == EventType.TRADE:
-                    self.simlogger.log_trade(event)
+        self.simlogger.log_events(events)
 
     def strategy_step(self):
         for agent in self.agents:
@@ -95,11 +86,9 @@ class Simulator:
                 events = self.order_book.process_order(order)
 
                 self.simlogger.log_order(order)
+                self.simlogger.log_events(events)
 
-                if type(events) == list and events:
-                    self.log_events(events)
-
-                    agent.update([e for e in events if e.type == EventType.TRADE])
+                agent.update(events)
 
     def step(self):
         self.order_flow_step()

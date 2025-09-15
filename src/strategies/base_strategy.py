@@ -1,4 +1,5 @@
 from uuid import uuid4
+from ..engine.events import EventType
 
 
 class BaseStrategy:
@@ -30,17 +31,20 @@ class BaseStrategy:
 
         raise NotImplementedError("Subclasses must implement on_trade().")
 
-    def update(self, trades):
-        for trade in trades:
-            if trade.buy_order_id == self.id:
+    def update(self, events):
+
+        for event in events:
+            if event.type != EventType.TRADE:
+                continue
+            if event.buy_order_id == self.id:
                 # Bought
-                self.inventory += trade.size
-                self.cash -= trade.size * trade.price
-            elif trade.sell_order_id == self.id:
+                self.inventory += event.size
+                self.cash -= event.size * event.price
+            elif event.sell_order_id == self.id:
                 # Sold
-                self.inventory -= trade.size
-                self.cash += trade.size * trade.price
-            self.on_trade(trade)
+                self.inventory -= event.size
+                self.cash += event.size * event.price
+            self.on_trade(event)
 
     def reset(self, initial_cash=None, initial_inventory=0):
         self.cash = initial_cash or self.initial_cash

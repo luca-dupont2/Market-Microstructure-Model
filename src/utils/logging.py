@@ -1,6 +1,8 @@
 import logging
 import sys
 from datetime import datetime
+from ..engine.order import Order, OrderType
+from ..engine.events import EventType, NewOrderEvent
 
 
 class SimLogger:
@@ -48,12 +50,26 @@ class SimLogger:
         )
 
     def log_order(self, order):
-        self.logger.debug(
-            f"NEW ORDER: {order.side} {order.type} {order.size} @ {getattr(order, 'price', None)}"
-        )
+        if isinstance(order, Order):
+            self.logger.debug(
+                f"NEW ORDER: {order.id} {order.side} {order.type} {order.size} @ {order.price}"
+            )
+        elif isinstance(order, NewOrderEvent):
+            self.logger.debug(
+                f"NEW ORDER EVENT: {order.side} {OrderType.MARKET if order.price == None else OrderType.LIMIT} {order.size} @ {order.price}"
+            )
 
     def log_cancel(self, cancel_event):
         self.logger.debug(f"CANCEL: order_id={cancel_event.order_id}")
+
+    def log_events(self, events):
+        for event in events:
+            if event.type == EventType.TRADE:
+                self.log_trade(event)
+            elif event.type == EventType.CANCEL_ORDER:
+                self.log_cancel(event)
+            elif event.type == EventType.NEW_ORDER:
+                self.log_order(event)
 
     def warning(self, msg):
         self.logger.warning(msg)
