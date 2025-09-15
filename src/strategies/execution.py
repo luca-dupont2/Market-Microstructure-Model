@@ -1,4 +1,5 @@
 from ..engine import OrderSide
+from uuid import uuid4
 
 
 class ExecutionStrategy:
@@ -20,7 +21,11 @@ class TWAPExecution(ExecutionStrategy):
         schedule_time,
         total_volume,
         side: OrderSide,
+        parent_id=None,
     ):
+
+        if not parent_id:
+            parent_id = uuid4().int
 
         if total_volume <= 0:
             raise ValueError("Total volume must be positive")
@@ -36,10 +41,7 @@ class TWAPExecution(ExecutionStrategy):
             for i in range(self.intervals)
         ]
 
-        schedule = [
-            (t, interval_volume, side, True if i == 0 else False)
-            for i, t in enumerate(times)
-        ]
+        schedule = [(t, interval_volume, side, parent_id) for t in times]
 
         return schedule
 
@@ -53,6 +55,7 @@ class BlockExecution(ExecutionStrategy):
         schedule_time,
         total_volume,
         side: OrderSide,
+        parent_id=None,
     ):
 
         if total_volume <= 0:
@@ -61,6 +64,6 @@ class BlockExecution(ExecutionStrategy):
         if schedule_time <= 0:
             raise ValueError("Schedule time must be positive")
 
-        schedule = [(schedule_time, total_volume, side, True)]
+        schedule = [(schedule_time, total_volume, side, parent_id)]
 
         return schedule

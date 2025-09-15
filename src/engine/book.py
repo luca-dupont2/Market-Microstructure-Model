@@ -2,7 +2,13 @@ from .order import OrderSide, OrderType, Order
 import heapq
 import warnings
 import pandas as pd
-from .events import EventQueue, create_new_order_event, create_trade_event, create_cancel_order_event, Event
+from .events import (
+    EventQueue,
+    create_new_order_event,
+    create_trade_event,
+    create_cancel_order_event,
+    Event,
+)
 from datetime import datetime
 
 
@@ -75,7 +81,12 @@ class LimitOrderBook:
                 trade = min(best.size, order.size)
 
                 trade_event = create_trade_event(
-                    best.get_price(), trade, order, best, order.timestamp
+                    best.get_price(),
+                    trade,
+                    order,
+                    best,
+                    order.timestamp,
+                    order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -94,7 +105,12 @@ class LimitOrderBook:
                 trade = min(best.size, order.size)
 
                 trade_event = create_trade_event(
-                    best.get_price(), trade, best, order, order.timestamp
+                    best.get_price(),
+                    trade,
+                    best,
+                    order,
+                    order.timestamp,
+                    order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -129,7 +145,12 @@ class LimitOrderBook:
                 trade = min(best.size, order.size)
 
                 trade_event = create_trade_event(
-                    best.get_price(), trade, best, order, order.timestamp
+                    best.get_price(),
+                    trade,
+                    best,
+                    order,
+                    order.timestamp,
+                    order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -151,7 +172,12 @@ class LimitOrderBook:
                 trade = min(best.size, order.size)
 
                 trade_event = create_trade_event(
-                    best.get_price(), trade, best, order, order.timestamp
+                    best.get_price(),
+                    trade,
+                    best,
+                    order,
+                    order.timestamp,
+                    order.parent_id,
                 )
 
                 trade_events.append(trade_event)

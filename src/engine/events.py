@@ -37,6 +37,7 @@ class NewOrderEvent(Event):
     size: int
     price: float | None
     order_type: OrderType
+    parent_order_id: int
 
     def __repr__(self) -> str:
         return f"NewOrderEvent(order_id={self.order_id}, side={self.side}, size={self.size}, price={self.price}, order_type={self.order_type}, timestamp={self.timestamp})"
@@ -57,12 +58,13 @@ class TradeEvent(Event):
     size: int
     buy_order_id: int
     sell_order_id: int
+    parent_order_id: int
 
     def __repr__(self) -> str:
         return f"TradeEvent(trade_id={self.trade_id}, price={self.price}, size={self.size}, buy_order_id={self.buy_order_id}, sell_order_id={self.sell_order_id}, timestamp={self.timestamp})"
 
 
-def create_trade_event(price, size, buy_order, sell_order, timestamp):
+def create_trade_event(price, size, buy_order, sell_order, timestamp, parent_order_id):
     return TradeEvent(
         type=EventType.TRADE,
         timestamp=timestamp,
@@ -71,6 +73,7 @@ def create_trade_event(price, size, buy_order, sell_order, timestamp):
         size=size,
         buy_order_id=buy_order.id,
         sell_order_id=sell_order.id,
+        parent_order_id=parent_order_id,
     )
 
 
@@ -83,6 +86,7 @@ def create_new_order_event(order, timestamp):
         size=order.size,
         price=order.price,
         order_type=order.type,
+        parent_order_id=order.parent_id,
     )
 
 

@@ -17,18 +17,18 @@ class ManualTaker(BaseStrategy):
             initial_inventory=initial_inventory,
         )
         self.slippage = []
-        self.parent_price = 0
 
     def schedule_order(self, *args, **kwargs):
-        self.parent_price = 0
         self.schedule += self.execution_strategy.schedule_order(*args, **kwargs)
 
         self.schedule.sort(key=lambda x: x[0])  # Sort by time
 
     def on_trade(self, trade):
-        slippage = self.parent_price - trade.price
+        parent_price = self.parent_order_dict[trade.parent_order_id]
 
-        slippage *= 1 if trade.buy_order_id == self.id else -1
+        slippage = parent_price - trade.price
+
+        slippage *= -1 if trade.sell_order_id == self.id else 1
 
         self.slippage.append((slippage, trade.size))
 
@@ -37,7 +37,7 @@ class ManualTaker(BaseStrategy):
             return None
 
         if time >= self.schedule[0][0]:
-            _, volume, side, parent = self.schedule.pop(0)
+            _, volume, side, parent_id = self.schedule.pop(0)
 
             order = Order(
                 type=OrderType.MARKET,
@@ -45,14 +45,14 @@ class ManualTaker(BaseStrategy):
                 size=volume,
                 price=None,
                 id=self.id,
+                parent_id=parent_id,
             )
 
-            if parent:
-                self.parent_price = (
-                    book.best_ask().get_price()
-                    if side == OrderSide.BUY
-                    else book.best_bid().get_price()
+            if parent_id not in self.parent_order_dict:
+                current_best = (
+                    book.best_bid() if side == OrderSide.SELL else book.best_ask()
                 )
+                self.parent_order_dict[parent_id] = current_best.get_price()
 
             return order
 

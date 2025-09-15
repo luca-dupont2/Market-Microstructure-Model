@@ -1,4 +1,6 @@
-# strategies/base_strategy.py
+from uuid import uuid4
+
+
 class BaseStrategy:
     """
     Abstract base class for trading strategies.
@@ -12,11 +14,12 @@ class BaseStrategy:
         initial_cash=10000,
         initial_inventory=0,
     ):
-        self.id = id or self.__class__.__name__
+        self.id = id or uuid4().int
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.inventory = initial_inventory
         self.execution_strategy = execution_strategy
+        self.parent_order_dict = {}
         self.schedule = []
 
     def on_trade(self, trade):

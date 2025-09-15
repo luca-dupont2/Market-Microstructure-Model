@@ -7,9 +7,6 @@ class OrderSide(Enum):
     BUY = 0
     SELL = 1
 
-    def __lt__(self):
-        return
-
 
 class OrderType(Enum):
     LIMIT = 0
@@ -18,7 +15,9 @@ class OrderType(Enum):
 
 
 class Order:
-    def __init__(self, side: OrderSide, price, size, type: OrderType, id=None):
+    def __init__(
+        self, side: OrderSide, price, size, type: OrderType, id=None, parent_id=None
+    ):
 
         self.side = side
         self.price = price
@@ -29,13 +28,15 @@ class Order:
         self.size = size
         self.type = type
 
+        self.parent_id = parent_id
+
         self.id = id or uuid.uuid4().int
         self.timestamp = datetime.now()
 
     def get_price(self):
         if self.id == -1:
             return 0
-        
+
         if self.side == OrderSide.BUY:
             return -self.price
         return self.price
@@ -50,4 +51,4 @@ class Order:
         return self.timestamp < other.timestamp
 
     def __repr__(self):
-        return f"Order(id={self.id}, side={self.side}, price={self.price}, size={self.size}, type={self.type}, timestamp={self.timestamp})"
+        return f"Order(id={self.id}, parent_id={self.parent_id}, side={self.side}, price={self.price}, size={self.size}, type={self.type}, timestamp={self.timestamp})"

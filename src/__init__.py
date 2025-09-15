@@ -1,7 +1,7 @@
 from .engine import book, events, metrics, order, simulator
 
 from .strategies import (
-    base,
+    base_strategy,
     market_maker,
     taker,
 )
@@ -25,7 +25,7 @@ __all__ = [
     "order",
     "simulator",
     #           Strategies
-    "base",
+    "base_strategy",
     "market_maker",
     "taker",
     #           Orderflow
