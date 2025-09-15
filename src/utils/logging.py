@@ -44,6 +44,14 @@ class SimLogger:
             self.logger.addHandler(file_handler)
 
     def log_trade(self, trade_event):
+        if (
+            type(trade_event.buy_order_id) == str
+            or type(trade_event.sell_order_id) == str
+        ):  # If is an Agent Trade
+            self.logger.info(
+                f"TRADE: {trade_event.size} @ {trade_event.price:.2f} "
+                f"(buy='{trade_event.buy_order_id}', sell='{trade_event.sell_order_id}')"
+            )
         self.logger.debug(
             f"TRADE: {trade_event.size} @ {trade_event.price:.2f} "
             f"(buy={trade_event.buy_order_id}, sell={trade_event.sell_order_id})"

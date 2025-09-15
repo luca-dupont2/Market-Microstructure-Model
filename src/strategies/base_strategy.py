@@ -1,4 +1,3 @@
-from uuid import uuid4
 from ..engine.events import EventType
 
 
@@ -15,7 +14,7 @@ class BaseStrategy:
         initial_cash=10000,
         initial_inventory=0,
     ):
-        self.id = id or uuid4().int
+        self.id = id or __class__.__name__
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.inventory = initial_inventory
