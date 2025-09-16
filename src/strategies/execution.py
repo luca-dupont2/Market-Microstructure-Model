@@ -1,29 +1,76 @@
 from ..engine import OrderSide
 from uuid import uuid4
+from ..utils import RNG
 
 
 class ExecutionStrategy:
-    def __init__(self, rng) -> None:
+    """Base class for execution strategies.
+
+    Attributes
+    ----------
+    rng : RNG
+        Random number generator instance.
+    """
+
+    def __init__(self, rng: RNG) -> None:
         self.rng = rng
 
     def schedule_order(self, *args, **kwargs):
+        """
+        Schedule an order using the execution strategy.
+
+        Raises:
+          NotImplementedError: If not implemented in subclass.
+        """
         raise NotImplementedError("Execution strategy must implement schedule method")
 
 
 class TWAPExecution(ExecutionStrategy):
-    def __init__(self, rng, intervals, duration) -> None:
+    """
+    Time-Weighted Average Price execution strategy.
+
+    Attributes
+    ----------
+    rng : RNG
+        Random number generator instance.
+    intervals : int
+        Number of intervals to split the order.
+    duration : float
+        Total duration over which to execute the order.
+    """
+
+    def __init__(self, rng: RNG, intervals: int, duration: float) -> None:
+        if intervals <= 0:
+            raise ValueError("Intervals must be positive")
+        if duration <= 0:
+            raise ValueError("Duration must be positive")
+
         self.intervals = intervals
         self.duration = duration
         super().__init__(rng=rng)
 
     def schedule_order(
         self,
-        schedule_time,
-        total_volume,
+        schedule_time: float,
+        total_volume: int,
         side: OrderSide,
-        parent_id=None,
-    ):
+        parent_id: int | str | None = None,
+    ) -> list[tuple[float, int, OrderSide, int | str]]:
+        """
+        Schedule an order using the TWAP strategy.
 
+        Args:
+          schedule_time (float): Start time for scheduling.
+          total_volume (int): Total volume to execute.
+          side (OrderSide): Side of the order (buy/sell).
+          parent_id (int | str | None, optional): Parent order ID.
+
+        Returns:
+          list: List of scheduled order tuples (time, volume, side, parent_id).
+
+        Raises:
+          ValueError: If total_volume or schedule_time is not positive.
+        """
         if not parent_id:
             parent_id = uuid4().int
 
@@ -47,16 +94,42 @@ class TWAPExecution(ExecutionStrategy):
 
 
 class BlockExecution(ExecutionStrategy):
-    def __init__(self, rng) -> None:
+    """
+    Block execution strategy that executes the entire order at once.
+
+    Attributes
+    ----------
+    rng : RNG
+        Random number generator instance.
+    """
+
+    def __init__(self, rng: RNG) -> None:
         super().__init__(rng=rng)
 
     def schedule_order(
         self,
-        schedule_time,
-        total_volume,
+        schedule_time: float,
+        total_volume: int,
         side: OrderSide,
-        parent_id=None,
-    ):
+        parent_id: int | str | None = None,
+    ) -> list[tuple[float, int, OrderSide, int | str]]:
+        """
+        Schedule an order using the Block execution strategy.
+
+        Args:
+          schedule_time (float): Time to execute the order.
+          total_volume (int): Total volume to execute.
+          side (OrderSide): Side of the order (buy/sell).
+          parent_id (int | str | None, optional): Parent order ID.
+
+        Returns:
+          list: List containing a single scheduled order tuple (time, volume, side, parent_id).
+
+        Raises:
+          ValueError: If total_volume or schedule_time is not positive.
+        """
+        if not parent_id:
+            parent_id = uuid4().int
 
         if total_volume <= 0:
             raise ValueError("Total volume must be positive")
