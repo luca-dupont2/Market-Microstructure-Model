@@ -30,6 +30,7 @@ class BaseStrategy:
         self.parent_order_dict = {}
         self.schedule = []
         self.slippage = []
+        self.n_trades = 0
 
     def record_trade_slippage(self, trade):
         """
@@ -46,6 +47,7 @@ class BaseStrategy:
 
     def on_trade(self, trade):
         self.record_trade_slippage(trade)
+        self.n_trades += 1
 
     def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
         self.schedule += self.execution_strategy.schedule_order(
@@ -186,6 +188,7 @@ class BaseStrategy:
             "Total PnL": f"${self.total_pnl(book):.2f}",
             "Average Slippage": f"${self.compute_average_slippage():.4f}",
             "Total Slippage": f"${self.compute_total_slippage():.2f}",
+            "Number of Trades": self.n_trades,
         }
 
         print(
