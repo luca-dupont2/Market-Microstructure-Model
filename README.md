@@ -109,7 +109,7 @@ plotting.plot_all(metrics, order_book_snapshot)
 
 The simulator automatically records useful metrics for each strategy and the whole market.
 
-### 📊 Strategy metrics
+### Strategy metrics
 
 -   PnL
 -   Inventory (long/short exposure)
@@ -117,10 +117,9 @@ The simulator automatically records useful metrics for each strategy and the who
     -   Average per share (execution quality)
     -   Total cost (absolute PnL impact)
 
-### 🌐 Market metrics
+### Market metrics
 
 > Visualizations with `plotting.py`
-> For every DT in the time horizon :
 
 -   Best bids, asks, and mid prices
 -   Spread
