@@ -30,18 +30,16 @@ class MomentumSignal(BaseSignal):
 
 
 class ImbalanceSignal(BaseSignal):
-    def __init__(self):
-        pass
+    def __init__(self, levels: int = 5):
+        self.levels = levels
 
     def compute(self, book: LimitOrderBook, history: dict) -> float:
-        total_bid_size = book.get_bid_size()
-        total_ask_size = book.get_ask_size()
+        bid_size = book.get_bid_size(levels=self.levels)
+        ask_size = book.get_ask_size(levels=self.levels)
 
-        if total_bid_size + total_ask_size == 0:
+        if bid_size + ask_size == 0:
             return 0.0  # Avoid division by zero
 
-        imbalance = (total_bid_size - total_ask_size) / (
-            total_bid_size + total_ask_size
-        )
+        imbalance = (bid_size - ask_size) / (bid_size + ask_size)
 
         return imbalance

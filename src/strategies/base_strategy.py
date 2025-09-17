@@ -12,7 +12,7 @@ class BaseStrategy:
     def __init__(
         self,
         execution_strategy,
-        cash_buffer: float = 0.1,
+        cash_buffer: float = 0.2,
         sensitivity: float = 0.5,
         signal=None,
         id=None,
