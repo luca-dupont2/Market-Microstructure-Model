@@ -1,10 +1,11 @@
+from src.engine.order import Order, OrderSide, OrderType
 from ..engine.events import EventType
 
 
 class BaseStrategy:
     """
     Abstract base class for trading strategies.
-    Provides a consistent interface for Makers, Takers, or hybrids.
+    Provides a consistent interface for Makers, Takers, or hybridsr.
     """
 
     def __init__(
@@ -30,8 +31,64 @@ class BaseStrategy:
 
         raise NotImplementedError("Subclasses must implement on_trade().")
 
-    def update(self, events):
+    def schedule_order(self, *args, **kwargs):
+        self.schedule += self.execution_strategy.schedule_order(*args, **kwargs)
 
+        self.schedule.sort(key=lambda x: x[0])  # Sort by time
+
+    def validate_order(self, order, book):
+        """
+        Validate an order before submission.
+        Can be overridden by subclasses for custom validation logic.
+        """
+        if order.size <= 0:
+            raise ValueError("Order size must be positive.")
+
+        best_ask_price = book.best_ask().get_price()
+
+        # Naive validation logic (no book pre-walking)
+        if order.side == OrderSide.BUY:
+            if order.type == OrderType.LIMIT:
+                total_cost = order.size * order.price
+                if self.cash < total_cost:
+                    raise ValueError("Insufficient cash for buy limit order.")
+            elif order.type == OrderType.MARKET:
+                total_cost = order.size * best_ask_price
+                if self.cash < total_cost:
+                    raise ValueError("Insufficient cash for buy market order.")
+        elif order.side == OrderSide.SELL:
+            if order.size > self.inventory:
+                raise ValueError("Insufficient inventory for sell limit order.")
+
+        return True
+
+    def step(self, time, book):
+        if not self.schedule:
+            return None
+
+        if time >= self.schedule[0][0]:
+            _, volume, side, parent_id = self.schedule.pop(0)
+
+            order = Order(
+                type=OrderType.MARKET,
+                side=side,
+                size=volume,
+                price=None,
+                id=self.id,
+                parent_id=parent_id,
+            )
+
+            if parent_id not in self.parent_order_dict:
+                current_best = (
+                    book.best_bid() if side == OrderSide.SELL else book.best_ask()
+                )
+                self.parent_order_dict[parent_id] = current_best.get_price()
+
+            return order
+
+        return None
+
+    def update(self, events):
         for event in events:
             if event.type != EventType.TRADE:
                 continue

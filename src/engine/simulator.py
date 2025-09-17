@@ -8,7 +8,7 @@ from pandas import DataFrame
 
 class Simulator:
     def __init__(self, config, rng, agents=[]):
-        self.order_book = LimitOrderBook()
+        self.order_book = LimitOrderBook(config)
         self.config = config
         self.agents = agents
 
@@ -182,7 +182,7 @@ class Simulator:
         self.simlogger.logger.info("Simulation completed.")
 
     def reset(self, agents):
-        self.order_book = LimitOrderBook()
+        self.order_book = LimitOrderBook(self.config)
         self.current_time = 0.0
         self.next_record_time = 0.0
         self.metrics = Metrics()
