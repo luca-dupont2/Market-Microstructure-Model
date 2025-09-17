@@ -138,7 +138,7 @@ class LimitOrderBook:
         else:
             return best_ask - best_bid
 
-    def get_bid_size(self) -> int:
+    def get_bid_size(self, levels: int = 5) -> int:
         """
         Get the total size of all bid orders in the book.
 
@@ -147,9 +147,12 @@ class LimitOrderBook:
         int
             Total size of bid orders.
         """
-        return sum(order.size for order in self.bid_orders)
+        if levels < 1 or levels > len(self.bid_orders):
+            return 0
 
-    def get_ask_size(self) -> int:
+        return sum(order.size for order in self.bid_orders[:levels])
+
+    def get_ask_size(self, levels: int = 5) -> int:
         """
         Get the total size of all ask orders in the book.
 
@@ -158,7 +161,10 @@ class LimitOrderBook:
         int
             Total size of ask orders.
         """
-        return sum(order.size for order in self.ask_orders)
+        if levels < 1 or levels > len(self.ask_orders):
+            return 0
+
+        return sum(order.size for order in self.ask_orders[:levels])
 
     def get_ask_depth(self) -> int:
         """
