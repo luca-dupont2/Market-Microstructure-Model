@@ -78,6 +78,8 @@ class BaseStrategy:
                 parent_id=parent_id,
             )
 
+            self.validate_order(order, book)
+
             if parent_id not in self.parent_order_dict:
                 current_best = (
                     book.best_bid() if side == OrderSide.SELL else book.best_ask()
