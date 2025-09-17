@@ -3,6 +3,7 @@ from .book import LimitOrderBook
 from .events import TradeEvent, Event
 import pandas as pd
 from numpy import prod
+from tabulate import tabulate
 
 ANNUAL_TIME_SECONDS = 252 * 6.5 * 60 * 60  # 252 trading days, 6.5 hours each
 
@@ -130,13 +131,21 @@ class Metrics:
 
     def print_summary(self):
         """Print a summary of key metrics."""
-        print("\n\x1b[4mMetrics Summary:\x1b[0m")
-        print(f"Annualized Volatility: {100*self.get_annualized_volatility():.2f} %")
-        print(f"Annualized Return: {100*self.get_annualized_return():.5f} %")
-        print(f"Sharpe Ratio: {self.get_annualized_sharpe():.2f}")
-        print(f"Max Drawdown: {100*self.get_max_drawdown():.2f} %")
-        print(f"Total Volume: {self.get_total_volume():.2f} shares")
-        print(f"Number of Trades: {self.get_number_of_trades():.2f}")
+        metrics = {
+            "Annualized Return": f"{100*self.get_annualized_return():.5f} %",
+            "Annualized Volatility": f"{100*self.get_annualized_volatility():.2f} %",
+            "Sharpe Ratio": f"{self.get_annualized_sharpe():.2f}",
+            "Max Drawdown": f"{100*self.get_max_drawdown():.2f} %",
+            "Total Volume": f"{self.get_total_volume():.2f} shares",
+            "Number of Trades": f"{self.get_number_of_trades():.2f}",
+        }
+
+        print(
+            tabulate(
+                metrics.items(), headers=["Metric", "Value"], tablefmt="fancy_grid"
+            )
+        )
+
 
     def reset(self):
         self.data = defaultdict(list)
