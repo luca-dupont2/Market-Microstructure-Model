@@ -361,7 +361,7 @@ class LimitOrderBook:
         pd.DataFrame or None
             DataFrame of the snapshot, or None if invalid depth.
         """
-        if snapshot_depth <= 0:
+        if snapshot_depth < 0:
             warnings.warn("Invalid depth. Depth cannot be negative.")
             return
 

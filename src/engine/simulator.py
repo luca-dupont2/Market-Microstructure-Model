@@ -46,6 +46,12 @@ class Simulator:
             order_event = self.order_book._add_order(order)
 
             self.simlogger.log_order(order_event)
+        self.simlogger.info(
+            f"Populated initial book with {n_orders} random limit orders."
+        )
+        self.simlogger.info(
+            f"Initial order book state:\n{self.order_book.get_dataframe()}"
+        )
 
     def order_flow_step(self):
         best_ask = self.order_book.best_ask().get_price()

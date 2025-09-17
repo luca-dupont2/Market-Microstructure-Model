@@ -65,9 +65,14 @@ class Generator:
     def gen_initial_price(self, side):
         # 0.5% range around initial price
         if side == OrderSide.BUY:
-            return self.rng.uniform(self.initial_price * 0.995, self.initial_price)
+            price = self.rng.uniform(self.initial_price * 0.995, self.initial_price)
+
         else:
-            return self.rng.uniform(self.initial_price, self.initial_price * 1.005)
+            price = self.rng.uniform(self.initial_price, self.initial_price * 1.005)
+
+        price = round(price / self.tick_size) * self.tick_size
+
+        return price
 
     def gen_price(self, best_price):
         direction = self.rng.choice([1, -1])
@@ -99,7 +104,6 @@ class Generator:
 
         if type == OrderType.MARKET:
             return Order(side=side, price=None, size=size, type=type)
-
 
         # Price generation for LIMIT orders
         # Relies on the best price on the SAME side of the book if possible, else uses opposite book, else initial price
