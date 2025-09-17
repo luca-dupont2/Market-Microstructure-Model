@@ -30,7 +30,7 @@ class MomentumSignal(BaseSignal):
 
 
 class ImbalanceSignal(BaseSignal):
-    def __init__(self, levels: int = 5):
+    def __init__(self, levels: int = 10):
         self.levels = levels
 
     def compute(self, book: LimitOrderBook, history: dict) -> float:
