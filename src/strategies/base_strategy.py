@@ -111,8 +111,17 @@ class BaseStrategy:
     def realized_pnl(self):
         return self.cash - self.initial_cash
 
-    def unrealized_pnl(self, current_price):
-        return self.inventory * current_price
+    def unrealized_pnl(self, book):
+        return self.inventory * book.mid_price()
 
-    def total_pnl(self, current_price):
-        return self.realized_pnl() + self.unrealized_pnl(current_price)
+    def total_pnl(self, book):
+        return self.realized_pnl() + self.unrealized_pnl(book)
+
+    def print_summary(self, book):
+        print("\n\x1b[4mStrategy Summary:\x1b[0m")
+        print(f"Strategy ID: {self.id}")
+        print(f"Cash: {self.cash:.2f}")
+        print(f"Inventory: {self.inventory}")
+        print(f"Realized PnL: {self.realized_pnl():.2f}")
+        print(f"Unrealized PnL: {self.unrealized_pnl(book):.2f}")
+        print(f"Total PnL: {self.total_pnl(book):.2f}")

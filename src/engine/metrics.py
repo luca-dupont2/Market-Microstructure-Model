@@ -2,6 +2,9 @@ from collections import defaultdict
 from .book import LimitOrderBook
 from .events import TradeEvent, Event
 import pandas as pd
+from numpy import prod
+
+ANNUAL_TIME_SECONDS = 252 * 6.5 * 60 * 60  # 252 trading days, 6.5 hours each
 
 
 class Metrics:
@@ -50,53 +53,72 @@ class Metrics:
         df["time"] = self.time
         return df
 
-    def get_annualized_volatility(self) -> float:
-        """Calculate and return the annualized volatility of the mid_price."""
-        mid_prices = self.data.get("mid_price", [])
-        if not mid_prices:
-            return 0.0
-
-        total_time = self.time[-1] - self.time[0] if len(self.time) > 1 else 1.0
-        time_interval = self.time[1] - self.time[0] if len(self.time) > 1 else 1.0
-
-        std = pd.Series(mid_prices).std()
-
-        return std * (total_time / time_interval) ** 0.5  # Annualized volatility
-
-    def get_returns(self) -> list[float]:
+    def get_returns(self) -> pd.Series:
         """Calculate and return the list of returns of the mid_price."""
         mid_prices = self.data.get("mid_price", [])
         if len(mid_prices) < 2:
-            return []
+            return pd.Series(dtype=float)
 
-        returns = pd.Series(mid_prices).pct_change().dropna().tolist()
+        returns = pd.Series(mid_prices).pct_change().dropna()
         return returns
+
+    def get_annualized_volatility(self) -> float:
+        """Calculate and return the annualized volatility of the mid_price."""
+        returns = self.get_returns()
+        if returns.empty:
+            return 0.0
+
+        time_interval = self.time[1] - self.time[0] if len(self.time) > 1 else 1.0
+
+        std = returns.std()
+
+        return (
+            std * (ANNUAL_TIME_SECONDS / time_interval) ** 0.5
+        )  # Annualized volatility
 
     def get_average_return(self) -> float:
         """Calculate and return the average return of the mid_price."""
         returns = self.get_returns()
-        if not returns:
+        if returns.empty:
             return 0.0
-        return sum(returns) / len(returns)
+
+        return returns.mean()
+
+    def get_annualized_return(self) -> float:
+        """Calculate and return the annualized return of the mid_price."""
+        returns = self.get_returns()
+        if returns.empty:
+            return 0.0
+
+        cum_return = prod(1 + returns)
+
+        total_time = self.time[-1] - self.time[0] if len(self.time) > 1 else 1.0
+
+        return (
+            (cum_return) ** (ANNUAL_TIME_SECONDS / total_time)
+        ) - 1  # Annualized return
 
     def get_max_drawdown(self) -> float:
         """Calculate and return the maximum drawdown of the mid_price."""
-        returns = self.get_returns()
-        if not returns:
+        prices = pd.Series(self.data.get("mid_price", []))
+        if prices.empty:
             return 0.0
 
-        cum_returns = (1 + pd.Series(returns)).cumprod()
+        cum_returns = prices / prices.iloc[0]
         peak = cum_returns.cummax()
+
         drawdown = (cum_returns - peak) / peak
         return drawdown.min()
 
-    def get_sharpe_ratio(self) -> float:
+    def get_annualized_sharpe(self, risk_free_rate: float = 0.0) -> float:
         """Calculate and return the Sharpe ratio of the mid_price."""
-        mean_return = self.get_average_return()
-        returns = self.get_returns()
-        if not returns or pd.Series(returns).std() == 0:
+        annualized_return = self.get_annualized_return()
+        annualized_volatility = self.get_annualized_volatility()
+
+        if annualized_volatility == 0:
             return 0.0
-        return mean_return / pd.Series(returns).std()
+
+        return (annualized_return - risk_free_rate) / annualized_volatility
 
     def get_total_volume(self) -> float:
         """Calculate and return the total volume traded."""
@@ -105,6 +127,16 @@ class Metrics:
     def get_number_of_trades(self) -> int:
         """Calculate and return the total number of trades executed."""
         return sum(self.data.get("n_trades", []))
+
+    def print_summary(self):
+        """Print a summary of key metrics."""
+        print("\n\x1b[4mMetrics Summary:\x1b[0m")
+        print(f"Annualized Volatility: {100*self.get_annualized_volatility():.2f} %")
+        print(f"Annualized Return: {100*self.get_annualized_return():.5f} %")
+        print(f"Sharpe Ratio: {self.get_annualized_sharpe():.2f}")
+        print(f"Max Drawdown: {100*self.get_max_drawdown():.2f} %")
+        print(f"Total Volume: {self.get_total_volume():.2f} shares")
+        print(f"Number of Trades: {self.get_number_of_trades():.2f}")
 
     def reset(self):
         self.data = defaultdict(list)
