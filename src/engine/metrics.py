@@ -1,6 +1,6 @@
 from collections import defaultdict
 from .book import LimitOrderBook
-from .events import Event, TradeEvent
+from .events import TradeEvent, Event
 
 
 class Metrics:
