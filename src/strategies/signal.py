@@ -1,5 +1,5 @@
 from ..engine.book import LimitOrderBook
-from ..engine.metrics import Metrics
+from math import tanh
 
 
 class BaseSignal:
@@ -10,8 +10,9 @@ class BaseSignal:
 
 
 class MomentumSignal(BaseSignal):
-    def __init__(self, look_back: int = 10):
+    def __init__(self, look_back: int = 10, alpha: float = 20.0):
         self.look_back = look_back
+        self.alpha = alpha
 
     def compute(self, book: LimitOrderBook, history: dict) -> float:
         mid_prices = history.get("mid_price", [])
@@ -21,4 +22,21 @@ class MomentumSignal(BaseSignal):
         recent_prices = mid_prices[-(self.look_back + 1) :]
         momentum = recent_prices[-1] - recent_prices[0]
 
-        return momentum
+        return tanh(self.alpha * (momentum / recent_prices[0]))  # Normalize
+
+
+class ImbalanceSignal(BaseSignal):
+    def __init__(self):
+        pass
+
+    def compute(self, book: LimitOrderBook, history: dict) -> float:
+        total_bid_size = book.get_bid_size()
+        total_ask_size = book.get_ask_size()
+
+        if total_bid_size + total_ask_size == 0:
+            return 0.0  # Avoid division by zero
+
+        imbalance = (total_bid_size - total_ask_size) / (
+            total_bid_size + total_ask_size
+        )
+        return imbalance

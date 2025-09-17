@@ -19,14 +19,14 @@ class Metrics:
         best_bid = order_book.best_bid().get_price() if order_book.bid_orders else None
         best_ask = order_book.best_ask().get_price() if order_book.ask_orders else None
 
-        mid_price = (best_bid + best_ask) / 2 if best_bid and best_ask else None
-        spread = (best_ask - best_bid) if best_bid and best_ask else None
+        mid_price = order_book.mid_price() if best_bid and best_ask else None
+        spread = order_book.get_spread() if best_bid and best_ask else None
 
-        total_bid_size = sum(o.size for o in order_book.bid_orders)
-        total_ask_size = sum(o.size for o in order_book.ask_orders)
+        total_bid_size = order_book.get_bid_size()
+        total_ask_size = order_book.get_ask_size()
 
-        depth_bid = len(order_book.bid_orders)
-        depth_ask = len(order_book.ask_orders)
+        depth_bid = order_book.get_bid_depth()
+        depth_ask = order_book.get_ask_depth()
 
         trades = [e for e in events if type(e) is TradeEvent] if events else []
 
@@ -145,7 +145,6 @@ class Metrics:
                 metrics.items(), headers=["Metric", "Value"], tablefmt="fancy_grid"
             )
         )
-
 
     def reset(self):
         self.data = defaultdict(list)
