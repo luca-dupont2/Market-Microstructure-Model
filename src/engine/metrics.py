@@ -60,7 +60,7 @@ class Metrics:
         if len(mid_prices) < 2:
             return pd.Series(dtype=float)
 
-        returns = pd.Series(mid_prices).pct_change().dropna()
+        returns = pd.Series(mid_prices).pct_change(fill_method=None).dropna()
         return returns
 
     def get_annualized_volatility(self) -> float:

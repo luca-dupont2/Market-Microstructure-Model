@@ -20,6 +20,10 @@ class MomentumSignal(BaseSignal):
             return 0.0  # Not enough data
 
         recent_prices = mid_prices[-(self.look_back + 1) :]
+
+        if recent_prices[-1] is None or recent_prices[0] is None:
+            return 0.0  # Avoid None values
+
         momentum = recent_prices[-1] - recent_prices[0]
 
         return tanh(self.alpha * (momentum / recent_prices[0]))  # Normalize
@@ -39,4 +43,5 @@ class ImbalanceSignal(BaseSignal):
         imbalance = (total_bid_size - total_ask_size) / (
             total_bid_size + total_ask_size
         )
+
         return imbalance

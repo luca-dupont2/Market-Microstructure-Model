@@ -131,12 +131,6 @@ class BlockExecution(ExecutionStrategy):
         if not parent_id:
             parent_id = uuid4().int
 
-        if total_volume <= 0:
-            raise ValueError("Total volume must be positive")
-
-        if schedule_time <= 0:
-            raise ValueError("Schedule time must be positive")
-
         schedule = [(schedule_time, total_volume, side, parent_id)]
 
         return schedule

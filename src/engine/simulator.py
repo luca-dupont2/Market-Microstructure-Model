@@ -38,7 +38,6 @@ class Simulator:
             )
 
             order_event = self.order_book._add_order(order)
-            self.simlogger.log_order(order_event)
 
         self.simlogger.info(
             f"Populated initial book with {len(df)} limit orders from dataframe."
@@ -62,7 +61,6 @@ class Simulator:
                 )
 
                 order_event = self.order_book._add_order(order)
-                self.simlogger.log_order(order_event)
 
                 order = Order(
                     side=OrderSide.SELL,
@@ -72,7 +70,6 @@ class Simulator:
                 )
 
                 order_event = self.order_book._add_order(order)
-                self.simlogger.log_order(order_event)
 
         self.simlogger.info(
             f"Populated initial book with {n_levels} levels of random limit orders."
@@ -105,18 +102,14 @@ class Simulator:
             return
 
         events = self.order_book.process_order(order)
-
-        self.simlogger.log_order(order)
         self.simlogger.log_events(events)
 
     def strategy_step(self):
         for agent in self.agents:
-            order = agent.step(self.current_time, self.order_book)
+            order = agent.step(self.current_time, self.order_book, self.metrics.data)
 
             if order:
                 events = self.order_book.process_order(order)
-
-                self.simlogger.log_order(order)
                 self.simlogger.log_events(events)
 
                 agent.update(events)

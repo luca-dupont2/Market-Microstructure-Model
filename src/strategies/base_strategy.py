@@ -31,14 +31,6 @@ class BaseStrategy:
         self.schedule = []
         self.slippage = []
 
-    def on_trade(self, trade):
-        """
-        Callback when a trade involving this agent is executed.
-        Allows strategy to update inventory, PnL, etc.
-        """
-
-        raise NotImplementedError("Subclasses must implement on_trade().")
-
     def record_trade_slippage(self, trade):
         """
         Record slippage for a trade involving this agent.
@@ -52,6 +44,9 @@ class BaseStrategy:
 
         self.slippage.append((slippage, trade.size))
 
+    def on_trade(self, trade):
+        self.record_trade_slippage(trade)
+
     def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
         self.schedule += self.execution_strategy.schedule_order(
             schedule_time, volume, side, *args, **kwargs
@@ -64,7 +59,7 @@ class BaseStrategy:
         Validate an order before submission.
         Can be overridden by subclasses for custom validation logic.
         """
-        if order.size <= 0:
+        if order.size < 0:
             raise ValueError("Order size must be positive.")
 
         best_ask_price = book.best_ask().get_price()
@@ -74,18 +69,21 @@ class BaseStrategy:
             if order.type == OrderType.LIMIT:
                 total_cost = order.size * order.price
                 if self.cash < total_cost:
-                    raise ValueError("Insufficient cash for buy limit order.")
+                    print("Insufficient cash for buy limit order.")
+                    return False
             elif order.type == OrderType.MARKET:
                 total_cost = order.size * best_ask_price
                 if self.cash < total_cost:
-                    raise ValueError("Insufficient cash for buy market order.")
+                    print("Insufficient cash for buy market order.")
+                    return False
         elif order.side == OrderSide.SELL:
             if order.size > self.inventory:
-                raise ValueError("Insufficient inventory for sell limit order.")
+                print("Insufficient inventory for sell limit order.")
+                return False
 
         return True
 
-    def process_signal(self, book, history, t) -> None:
+    def process_signal(self, book, history, time) -> None:
         if self.signal is None:
             return None
 
@@ -95,16 +93,19 @@ class BaseStrategy:
         signal_value = self.signal.compute(book, history)
 
         if signal_value > self.sensitivity:
-            best_bid = book.best_bid()
-            budget = (self.cash - self.cash_buffer) * signal_value
-            volume = budget // best_bid.get_price()
+            best_ask = book.best_ask()
+            if best_ask.id == -1:
+                return
 
-            self.schedule_order(t, volume, OrderSide.BUY)
+            budget = (self.cash * (1 - self.cash_buffer)) * signal_value
+            volume = budget // best_ask.get_price()
+
+            self.schedule_order(time, volume, OrderSide.BUY)
 
         elif signal_value < -self.sensitivity:
             volume = int(abs(signal_value) * self.inventory)
 
-            self.schedule_order(t, volume, OrderSide.SELL)
+            self.schedule_order(time, volume, OrderSide.SELL)
 
     def step(self, time, book, history):
         self.process_signal(book, history, time)
@@ -124,7 +125,8 @@ class BaseStrategy:
                 parent_id=parent_id,
             )
 
-            self.validate_order(order, book)
+            if not self.validate_order(order, book):
+                return None
 
             if parent_id not in self.parent_order_dict:
                 current_best = (
