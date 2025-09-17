@@ -1,6 +1,7 @@
 from collections import defaultdict
 from .book import LimitOrderBook
 from .events import TradeEvent, Event
+import pandas as pd
 
 
 class Metrics:
@@ -48,3 +49,50 @@ class Metrics:
         df = pd.DataFrame(self.data)
         df["time"] = self.time
         return df
+
+    def get_volatility(self) -> float:
+        """Calculate and return the volatility of the mid_price."""
+        mid_prices = self.data.get("mid_price", [])
+        if not mid_prices:
+            return 0.0
+
+        return pd.Series(mid_prices).std()
+
+    def get_returns(self) -> list[float]:
+        """Calculate and return the list of returns of the mid_price."""
+        mid_prices = self.data.get("mid_price", [])
+        if len(mid_prices) < 2:
+            return []
+
+        returns = pd.Series(mid_prices).pct_change().dropna().tolist()
+        return returns
+
+    def get_average_return(self) -> float:
+        """Calculate and return the average return of the mid_price."""
+        returns = self.get_returns()
+        if not returns:
+            return 0.0
+        return sum(returns) / len(returns)
+
+    def get_max_drawdown(self) -> float:
+        """Calculate and return the maximum drawdown of the mid_price."""
+        returns = self.get_returns()
+        if not returns:
+            return 0.0
+
+        cum_returns = (1 + pd.Series(returns)).cumprod()
+        peak = cum_returns.cummax()
+        drawdown = (cum_returns - peak) / peak
+        return drawdown.min()
+
+    def get_sharpe_ratio(self) -> float:
+        """Calculate and return the Sharpe ratio of the mid_price."""
+        mean_return = self.get_average_return()
+        returns = self.get_returns()
+        if not returns or pd.Series(returns).std() == 0:
+            return 0.0
+        return mean_return / pd.Series(returns).std()
+
+    def reset(self):
+        self.data = defaultdict(list)
+        self.time = []
