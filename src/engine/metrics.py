@@ -93,6 +93,14 @@ class Metrics:
             return 0.0
         return mean_return / pd.Series(returns).std()
 
+    def get_total_volume(self) -> float:
+        """Calculate and return the total volume traded."""
+        return sum(self.data.get("volume", []))
+
+    def get_number_of_trades(self) -> int:
+        """Calculate and return the total number of trades executed."""
+        return sum(self.data.get("n_trades", []))
+
     def reset(self):
         self.data = defaultdict(list)
         self.time = []
