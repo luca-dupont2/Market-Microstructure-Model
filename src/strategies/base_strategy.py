@@ -147,13 +147,13 @@ class BaseStrategy:
     def print_summary(self, book):
         metrics = {
             "Strategy ID": self.id,
-            "Final Cash": f"{self.cash:.2f}",
-            "Final Inventory": self.inventory,
-            "Realized PnL": f"{self.realized_pnl():.2f}",
-            "Unrealized PnL": f"{self.unrealized_pnl(book):.2f}",
-            "Total PnL": f"{self.total_pnl(book):.2f}",
-            "Average Slippage": f"{self.compute_average_slippage():.4f}",
-            "Total Slippage": f"{self.compute_total_slippage():.2f}",
+            "Final Cash": f"${self.cash:.2f}",
+            "Final Inventory": f"{self.inventory} shares",
+            "Realized PnL": f"${self.realized_pnl():.2f}",
+            "Unrealized PnL": f"${self.unrealized_pnl(book):.2f}",
+            "Total PnL": f"${self.total_pnl(book):.2f}",
+            "Average Slippage": f"${self.compute_average_slippage():.4f}",
+            "Total Slippage": f"${self.compute_total_slippage():.2f}",
         }
 
         print(
