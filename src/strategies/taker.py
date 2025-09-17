@@ -45,9 +45,9 @@ class ImbalanceTaker(BaseStrategy):
     def __init__(
         self,
         execution_strategy,
-        sensitivity: float = 0.15,
+        sensitivity: float = 0.40,
         cash_buffer: float = 0.25,
-        levels: int = 5,
+        levels: int = 10,
         id=None,
         initial_cash=10000,
         initial_inventory=0,
