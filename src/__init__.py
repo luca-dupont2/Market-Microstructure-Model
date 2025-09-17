@@ -4,6 +4,8 @@ from .strategies import (
     base_strategy,
     market_maker,
     taker,
+    execution,
+    signal,
 )
 
 from .orderflow import generator
@@ -28,6 +30,8 @@ __all__ = [
     "base_strategy",
     "market_maker",
     "taker",
+    "execution",
+    "signal",
     #           Orderflow
     "generator",
     #           Utils
