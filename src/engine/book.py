@@ -118,7 +118,7 @@ class LimitOrderBook:
             return best_bid
         else:
             return (best_bid + best_ask) / 2
-        
+
     def get_spread(self) -> float:
         """
         Calculate the spread between best ask and best bid.
@@ -134,9 +134,53 @@ class LimitOrderBook:
         if best_bid == 0 and best_ask == 0:
             return 0.0
         elif best_bid == 0 or best_ask == 0:
-            return float('inf')  # Infinite spread if one side is missing
+            return float("inf")  # Infinite spread if one side is missing
         else:
             return best_ask - best_bid
+
+    def get_bid_size(self) -> int:
+        """
+        Get the total size of all bid orders in the book.
+
+        Returns
+        -------
+        int
+            Total size of bid orders.
+        """
+        return sum(order.size for order in self.bid_orders)
+
+    def get_ask_size(self) -> int:
+        """
+        Get the total size of all ask orders in the book.
+
+        Returns
+        -------
+        int
+            Total size of ask orders.
+        """
+        return sum(order.size for order in self.ask_orders)
+
+    def get_ask_depth(self) -> int:
+        """
+        Get the number of ask orders in the book.
+
+        Returns
+        -------
+        int
+            Number of ask orders.
+        """
+        return len(self.ask_orders)
+
+    def get_bid_depth(self) -> int:
+        """
+        Get the number of bid orders in the book.
+
+        Returns
+        -------
+        int
+            Number of bid orders.
+        """
+        return len(self.bid_orders)
 
     def _match_market_order(self, order: Order) -> list[Event]:
         """
@@ -426,50 +470,6 @@ class LimitOrderBook:
             return
 
         return ob_snapshot
-
-    def get_bid_size(self) -> int:
-        """
-        Get the total size of all bid orders in the book.
-
-        Returns
-        -------
-        int
-            Total size of bid orders.
-        """
-        return sum(order.size for order in self.bid_orders)
-
-    def get_ask_size(self) -> int:
-        """
-        Get the total size of all ask orders in the book.
-
-        Returns
-        -------
-        int
-            Total size of ask orders.
-        """
-        return sum(order.size for order in self.ask_orders)
-
-    def get_ask_depth(self) -> int:
-        """
-        Get the number of ask orders in the book.
-
-        Returns
-        -------
-        int
-            Number of ask orders.
-        """
-        return len(self.ask_orders)
-
-    def get_bid_depth(self) -> int:
-        """
-        Get the number of bid orders in the book.
-
-        Returns
-        -------
-        int
-            Number of bid orders.
-        """
-        return len(self.bid_orders)
 
     def flush_event_queue(self) -> list[Event]:
         """
