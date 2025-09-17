@@ -27,9 +27,10 @@ class LimitOrderBook:
         Queue for publishing and consuming order book events.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, config: dict) -> None:
         self.bid_orders = []
         self.ask_orders = []
+        self.tick_size = config["SIM_PARAMS"]["tick_size"]
 
         self.events = EventQueue()
 
@@ -213,6 +214,8 @@ class LimitOrderBook:
             return []
 
         trade_events = []
+
+        order.price = round(order.price / self.tick_size) * self.tick_size
 
         if order.side == OrderSide.BUY:  # Buy order
             while self.ask_orders and order.size > 0:
