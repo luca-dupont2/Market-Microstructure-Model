@@ -47,13 +47,14 @@ class ImbalanceTaker(BaseStrategy):
         execution_strategy,
         sensitivity: float = 0.15,
         cash_buffer: float = 0.25,
+        levels: int = 5,
         id=None,
         initial_cash=10000,
         initial_inventory=0,
     ):
         super().__init__(
             execution_strategy=execution_strategy,
-            signal=ImbalanceSignal(),
+            signal=ImbalanceSignal(levels=levels),
             sensitivity=sensitivity,
             cash_buffer=cash_buffer,
             id=id,
