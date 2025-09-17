@@ -121,10 +121,12 @@ The simulator automatically records useful metrics for each strategy and the who
 
 -   Best bids, asks, and mid prices
 -   Spread
--   Bid and ask size
--   Bid and ask depth
+-   Bid and ask size and depth
 -   Trade volume
 -   Number of trades
+-   Annualized volatility and returns
+-   Sharpe Ratio
+-   Max Drawdown
 
 ## Installation
 
@@ -140,6 +142,7 @@ pip install -r requirements.txt
 -   Extend execution algos (IS, POV, VWAP)
 -   Extend strategy metrics
 -   Real market data replay support
+-   Implement Streamlit dashboard for real-time monitoring and parameter tuning
 
 ## License
 
