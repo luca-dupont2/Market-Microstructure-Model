@@ -1,4 +1,3 @@
-from src.engine import metrics
 from src.engine.order import Order, OrderSide, OrderType
 from ..engine.events import EventType
 from tabulate import tabulate
@@ -13,6 +12,9 @@ class BaseStrategy:
     def __init__(
         self,
         execution_strategy,
+        cash_buffer: float = 0.1,
+        sensitivity: float = 0.5,
+        signal=None,
         id=None,
         initial_cash=10000,
         initial_inventory=0,
@@ -20,8 +22,11 @@ class BaseStrategy:
         self.id = id or __class__.__name__
         self.initial_cash = initial_cash
         self.cash = initial_cash
+        self.sensitivity = sensitivity
+        self.cash_buffer = cash_buffer
         self.inventory = initial_inventory
         self.execution_strategy = execution_strategy
+        self.signal = signal
         self.parent_order_dict = {}
         self.schedule = []
         self.slippage = []
@@ -47,8 +52,10 @@ class BaseStrategy:
 
         self.slippage.append((slippage, trade.size))
 
-    def schedule_order(self, *args, **kwargs):
-        self.schedule += self.execution_strategy.schedule_order(*args, **kwargs)
+    def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
+        self.schedule += self.execution_strategy.schedule_order(
+            schedule_time, volume, side, *args, **kwargs
+        )
 
         self.schedule.sort(key=lambda x: x[0])  # Sort by time
 
@@ -78,7 +85,30 @@ class BaseStrategy:
 
         return True
 
-    def step(self, time, book):
+    def process_signal(self, book, history, t) -> None:
+        if self.signal is None:
+            return None
+
+        if abs(self.sensitivity) > 1.0:
+            raise ValueError("Sensitivity must be between 0 and 1.")
+
+        signal_value = self.signal.compute(book, history)
+
+        if signal_value > self.sensitivity:
+            best_bid = book.best_bid()
+            budget = (self.cash - self.cash_buffer) * signal_value
+            volume = budget // best_bid.get_price()
+
+            self.schedule_order(t, volume, OrderSide.BUY)
+
+        elif signal_value < -self.sensitivity:
+            volume = int(abs(signal_value) * self.inventory)
+
+            self.schedule_order(t, volume, OrderSide.SELL)
+
+    def step(self, time, book, history):
+        self.process_signal(book, history, time)
+
         if not self.schedule:
             return None
 
