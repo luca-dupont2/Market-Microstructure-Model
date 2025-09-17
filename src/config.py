@@ -2,7 +2,7 @@ ORDER_DRIFT = 0.0  # Increase in probability of placing a buy order vs sell orde
 
 CONFIG = {
     "SIM_PARAMS": {
-        "horizon": 12 * 60 * 60,  # simulated time (s)
+        "horizon": 24 * 60 * 60,  # simulated time (s)
         "dt": 0.5,  # time step for simulation (s)
         "tick_size": 0.01,  # minimum price increment ($)
         "initial_price": 200,  # initial mid price ($)
