@@ -103,13 +103,14 @@ print(f"Taker Avg Slippage: {manual_taker.compute_average_slippage():.2f} $/shar
 print(f"Taker Total Slippage: {manual_taker.compute_total_slippage():.2f} $")
 
 print("\nMetrics Summary:")
-print(f"Volatility: {simulator.metrics.get_volatility():.2f}")
-print(f"Average Return: {simulator.metrics.get_average_return():.5f}")
+print(f"Annualized Volatility: {simulator.metrics.get_annualized_volatility():.2f} %")
+print(f"Average Return: {simulator.metrics.get_average_return():.5f} %")
 print(f"Sharpe Ratio: {simulator.metrics.get_sharpe_ratio():.2f}")
 print(f"Total Volume: {simulator.metrics.get_total_volume():.2f} shares")
 print(f"Number of Trades: {simulator.metrics.get_number_of_trades():.2f}")
 
 plotting.plot_all(metrics, order_book_snapshot)
+
 ```
 
 ## Metrics

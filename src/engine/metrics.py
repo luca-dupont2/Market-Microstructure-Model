@@ -50,13 +50,18 @@ class Metrics:
         df["time"] = self.time
         return df
 
-    def get_volatility(self) -> float:
-        """Calculate and return the volatility of the mid_price."""
+    def get_annualized_volatility(self) -> float:
+        """Calculate and return the annualized volatility of the mid_price."""
         mid_prices = self.data.get("mid_price", [])
         if not mid_prices:
             return 0.0
 
-        return pd.Series(mid_prices).std()
+        total_time = self.time[-1] - self.time[0] if len(self.time) > 1 else 1.0
+        time_interval = self.time[1] - self.time[0] if len(self.time) > 1 else 1.0
+
+        std = pd.Series(mid_prices).std()
+
+        return std * (total_time / time_interval) ** 0.5  # Annualized volatility
 
     def get_returns(self) -> list[float]:
         """Calculate and return the list of returns of the mid_price."""
