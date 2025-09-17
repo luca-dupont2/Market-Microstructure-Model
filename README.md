@@ -96,18 +96,8 @@ order_book_snapshot = simulator.order_book.get_dataframe()
 simulator.save_order_book()
 simulator.save_metrics()
 
-print("\nManual Taker results with TWAP Execution")
-
-print(f"Taker PnL: {manual_taker.total_pnl(simulator.order_book.mid_price())}")
-print(f"Taker Avg Slippage: {manual_taker.compute_average_slippage():.2f} $/share")
-print(f"Taker Total Slippage: {manual_taker.compute_total_slippage():.2f} $")
-
-print("\nMetrics Summary:")
-print(f"Annualized Volatility: {simulator.metrics.get_annualized_volatility():.2f} %")
-print(f"Average Return: {simulator.metrics.get_average_return():.5f} %")
-print(f"Sharpe Ratio: {simulator.metrics.get_sharpe_ratio():.2f}")
-print(f"Total Volume: {simulator.metrics.get_total_volume():.2f} shares")
-print(f"Number of Trades: {simulator.metrics.get_number_of_trades():.2f}")
+manual_taker.print_summary(simulator.order_book)
+simulator.metrics.print_summary()
 
 plotting.plot_all(metrics, order_book_snapshot)
 
