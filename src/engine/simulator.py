@@ -3,6 +3,7 @@ from ..utils import SimLogger
 from ..orderflow.generator import Generator
 from .metrics import Metrics
 from datetime import datetime
+from pandas import DataFrame
 
 
 class Simulator:
@@ -27,7 +28,23 @@ class Simulator:
 
         self.generator = Generator(config, rng)
 
-    def populate_initial_book(self, n_levels=16, orders_per_level=3):
+    def populate_initial_book_from_df(self, df: DataFrame):
+        for _, row in df.iterrows():
+            order = Order(
+                side=OrderSide.BUY if row["side"] == "buy" else OrderSide.SELL,
+                price=row["price"],
+                size=row["size"],
+                type=OrderType.LIMIT,
+            )
+
+            order_event = self.order_book._add_order(order)
+            self.simlogger.log_order(order_event)
+
+        self.simlogger.info(
+            f"Populated initial book with {len(df)} limit orders from dataframe."
+        )
+
+    def populate_initial_book_rand(self, n_levels=16, orders_per_level=3):
         initial_price = self.config["SIM_PARAMS"]["initial_price"]
 
         for level in range(1, n_levels + 1):
