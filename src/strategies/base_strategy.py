@@ -1,5 +1,7 @@
+from src.engine import metrics
 from src.engine.order import Order, OrderSide, OrderType
 from ..engine.events import EventType
+from tabulate import tabulate
 
 
 class BaseStrategy:
@@ -22,6 +24,7 @@ class BaseStrategy:
         self.execution_strategy = execution_strategy
         self.parent_order_dict = {}
         self.schedule = []
+        self.slippage = []
 
     def on_trade(self, trade):
         """
@@ -30,6 +33,19 @@ class BaseStrategy:
         """
 
         raise NotImplementedError("Subclasses must implement on_trade().")
+
+    def record_trade_slippage(self, trade):
+        """
+        Record slippage for a trade involving this agent.
+        """
+
+        parent_price = self.parent_order_dict[trade.parent_order_id]
+
+        slippage = parent_price - trade.price
+
+        slippage *= -1 if trade.sell_order_id == self.id else 1
+
+        self.slippage.append((slippage, trade.size))
 
     def schedule_order(self, *args, **kwargs):
         self.schedule += self.execution_strategy.schedule_order(*args, **kwargs)
@@ -108,6 +124,17 @@ class BaseStrategy:
         self.cash = initial_cash or self.initial_cash
         self.inventory = initial_inventory
 
+    def compute_average_slippage(self):
+        if not self.slippage:
+            return 0.0
+
+        total_slippage = sum(slip * size for slip, size in self.slippage)
+        total_size = sum(size for _, size in self.slippage)
+        return total_slippage / total_size if total_size > 0 else 0.0
+
+    def compute_total_slippage(self):
+        return sum(slip * size for slip, size in self.slippage)
+
     def realized_pnl(self):
         return self.cash - self.initial_cash
 
@@ -118,10 +145,19 @@ class BaseStrategy:
         return self.realized_pnl() + self.unrealized_pnl(book)
 
     def print_summary(self, book):
-        print("\n\x1b[4mStrategy Summary:\x1b[0m")
-        print(f"Strategy ID: {self.id}")
-        print(f"Cash: {self.cash:.2f}")
-        print(f"Inventory: {self.inventory}")
-        print(f"Realized PnL: {self.realized_pnl():.2f}")
-        print(f"Unrealized PnL: {self.unrealized_pnl(book):.2f}")
-        print(f"Total PnL: {self.total_pnl(book):.2f}")
+        metrics = {
+            "Strategy ID": self.id,
+            "Final Cash": f"{self.cash:.2f}",
+            "Final Inventory": self.inventory,
+            "Realized PnL": f"{self.realized_pnl():.2f}",
+            "Unrealized PnL": f"{self.unrealized_pnl(book):.2f}",
+            "Total PnL": f"{self.total_pnl(book):.2f}",
+            "Average Slippage": f"{self.compute_average_slippage():.4f}",
+            "Total Slippage": f"{self.compute_total_slippage():.2f}",
+        }
+
+        print(
+            tabulate(
+                metrics.items(), headers=["Metric", "Value"], tablefmt="fancy_grid"
+            )
+        )
