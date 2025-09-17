@@ -18,18 +18,18 @@ manual_taker = ManualTaker(
     execution_strategy=execution_strategy,
 )
 
-manual_taker.schedule_order(1800, 600, OrderSide.BUY)
+manual_taker.schedule_order(7200, 300, OrderSide.BUY)
 
 simulator = Simulator(CONFIG, rng, agents=[manual_taker])
-simulator.populate_initial_book(n_orders=500)
+simulator.populate_initial_book_rand(n_levels=25, orders_per_level=5)
 
 simulator.run()
 
 metrics = simulator.metrics.get_dataframe()
 order_book_snapshot = simulator.order_book.get_dataframe()
 
-simulator.save_order_book()
-simulator.save_metrics()
+# simulator.save_order_book()
+# simulator.save_metrics()
 
 print("\nManual Taker results with TWAP Execution")
 
