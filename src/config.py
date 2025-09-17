@@ -1,8 +1,8 @@
-ORDER_DRIFT = 0.001  # Increase in probability of placing a buy order vs sell order
+ORDER_DRIFT = 0.0  # Increase in probability of placing a buy order vs sell order
 
 CONFIG = {
     "SIM_PARAMS": {
-        "horizon": 12 * 60 * 60,  # simulated time (s)
+        "horizon": 24 * 60 * 60,  # simulated time (s)
         "dt": 0.5,  # time step for simulation (s)
         "tick_size": 0.01,  # minimum price increment ($)
         "initial_price": 100,  # initial mid price ($)
@@ -28,7 +28,7 @@ CONFIG = {
             "max_size": 100,  # Maximum order size
         },
         "placement_distribution": {  # Geometric + Zipf mixture
-            "p_geom": 0.40,  # prob of bernoulli trial success when sampling from geometric distribution
+            "p_geom": 0.45,  # prob of bernoulli trial success when sampling from geometric distribution
             "max_distance": 200,  # max distance from best bid/ask for limit orders (in ticks)
             "r_pointmass": 0.90,  # prob of sampling from geometric distribution
             "alpha_zipf": 1.45,  # exponent for zipf distribution

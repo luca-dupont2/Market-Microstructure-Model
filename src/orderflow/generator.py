@@ -4,9 +4,9 @@ from ..engine.order import OrderSide, OrderType, Order
 
 
 class Generator:
-    def __init__(self, config):
+    def __init__(self, config, rng):
         seed = config["SIM_PARAMS"]["random_seed"]
-        self.rng = rng.RNG(seed)
+        self.rng = rng
 
         self.order_probs = config["ORDERFLOW_PARAMS"]["order_bernoulli"]
 
@@ -61,18 +61,6 @@ class Generator:
     def gen_size(self):
         rounded_size = int(self.log_normal.sample())
         return clip(rounded_size, self.min_size, self.max_size)
-
-    def gen_initial_price(self, side):
-        # 0.5% range around initial price
-        if side == OrderSide.BUY:
-            price = self.rng.uniform(self.initial_price * 0.995, self.initial_price)
-
-        else:
-            price = self.rng.uniform(self.initial_price, self.initial_price * 1.005)
-
-        price = round(price / self.tick_size) * self.tick_size
-
-        return price
 
     def gen_price(self, best_price):
         direction = self.rng.choice([1, -1])

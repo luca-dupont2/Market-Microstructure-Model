@@ -3,7 +3,6 @@ from ..utils import SimLogger
 from ..orderflow.generator import Generator
 from .metrics import Metrics
 from datetime import datetime
-from .events import EventType
 
 
 class Simulator:
@@ -26,31 +25,40 @@ class Simulator:
 
         self.metrics = Metrics()
 
-        self.generator = Generator(config)
+        self.generator = Generator(config, rng)
 
-    def populate_initial_book(self, n_orders=100):
-        for i in range(n_orders):
-            side = OrderSide.BUY if i % 2 == 0 else OrderSide.SELL
+    def populate_initial_book(self, n_levels=16, orders_per_level=3):
+        initial_price = self.config["SIM_PARAMS"]["initial_price"]
 
-            price = self.generator.gen_initial_price(side)
+        for level in range(1, n_levels + 1):
+            price_deviation = level * self.config["SIM_PARAMS"]["tick_size"]
 
-            size = self.generator.gen_size()
+            for _ in range(orders_per_level):
+                size1 = self.generator.gen_size()
+                size2 = self.generator.gen_size()
 
-            order = Order(
-                side=side,
-                price=price,
-                size=size,
-                type=OrderType.LIMIT,
-            )
+                order = Order(
+                    side=OrderSide.BUY,
+                    price=initial_price - price_deviation,
+                    size=size1,
+                    type=OrderType.LIMIT,
+                )
 
-            order_event = self.order_book._add_order(order)
+                order_event = self.order_book._add_order(order)
+                self.simlogger.log_order(order_event)
 
-            self.simlogger.log_order(order_event)
+                order = Order(
+                    side=OrderSide.SELL,
+                    price=initial_price + price_deviation,
+                    size=size2,
+                    type=OrderType.LIMIT,
+                )
+
+                order_event = self.order_book._add_order(order)
+                self.simlogger.log_order(order_event)
+
         self.simlogger.info(
-            f"Populated initial book with {n_orders} random limit orders."
-        )
-        self.simlogger.info(
-            f"Initial order book state:\n{self.order_book.get_dataframe()}"
+            f"Populated initial book with {n_levels} levels of random limit orders."
         )
 
     def order_flow_step(self):
