@@ -14,8 +14,8 @@ class BaseStrategy:
         execution_strategy,
         cash_buffer: float = 0.2,
         sensitivity: float = 0.5,
-        smoothing: float = 0.1,
-        cooldown: float = 150.0,
+        smoothing: float = 0.25,
+        cooldown: float = 120.0,  # seconds. Should be > record interval
         signal=None,
         id=None,
         initial_cash=10000,
@@ -108,18 +108,18 @@ class BaseStrategy:
             self.smoothing * signal_value + (1 - self.smoothing) * self.signal_state
         )
 
-        if signal_value > self.sensitivity:
+        if self.signal_state > self.sensitivity:
             best_ask = book.best_ask()
             if best_ask.id == -1:
                 return
 
-            budget = (self.cash * (1 - self.cash_buffer)) * signal_value
+            budget = (self.cash * (1 - self.cash_buffer)) * self.signal_state
             volume = budget // best_ask.get_price()
 
             self.schedule_order(time, volume, OrderSide.BUY)
 
-        elif signal_value < -self.sensitivity:
-            volume = int(abs(signal_value) * self.inventory)
+        elif self.signal_state < -self.sensitivity:
+            volume = int(abs(self.signal_state) * self.inventory)
 
             self.schedule_order(time, volume, OrderSide.SELL)
 
