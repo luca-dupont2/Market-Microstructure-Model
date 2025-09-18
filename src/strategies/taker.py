@@ -30,11 +30,13 @@ class MomentumTaker(BaseStrategy):
         initial_cash=10000,
         initial_inventory=0,
     ):
+        smoothing = 2 / (look_back + 1)
         super().__init__(
             execution_strategy=execution_strategy,
             signal=MomentumSignal(look_back=look_back, alpha=alpha),
             sensitivity=sensitivity,
             cash_buffer=cash_buffer,
+            smoothing=smoothing,
             id=id,
             initial_cash=initial_cash,
             initial_inventory=initial_inventory,
