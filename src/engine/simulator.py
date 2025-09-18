@@ -31,7 +31,7 @@ class Simulator:
     def populate_initial_book_from_df(self, df: DataFrame):
         for _, row in df.iterrows():
             order = Order(
-                side=OrderSide.BUY if row["side"] == "buy" else OrderSide.SELL,
+                side=OrderSide.BUY if row["side"].item() == "buy" else OrderSide.SELL,
                 price=row["price"],
                 size=row["size"],
                 type=OrderType.LIMIT,
@@ -112,7 +112,7 @@ class Simulator:
                 events = self.order_book.process_order(order)
                 self.simlogger.log_events(events)
 
-                agent.update(events)
+                agent.update(self.current_time, events)
 
     def step(self):
         self.order_flow_step()
