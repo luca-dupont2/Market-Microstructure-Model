@@ -14,6 +14,8 @@ class BaseStrategy:
         execution_strategy,
         cash_buffer: float = 0.2,
         sensitivity: float = 0.5,
+        smoothing: float = 0.1,
+        cooldown: float = 150.0,
         signal=None,
         id=None,
         initial_cash=10000,
@@ -27,10 +29,13 @@ class BaseStrategy:
         self.inventory = initial_inventory
         self.execution_strategy = execution_strategy
         self.signal = signal
+        self.smoothing = smoothing
+        self.cooldown = cooldown  # seconds
+        self.signal_state = 0.0
         self.parent_order_dict = {}
         self.schedule = []
         self.slippage = []
-        self.n_trades = 0
+        self.trades = []
 
     def record_trade_slippage(self, trade):
         """
@@ -45,9 +50,9 @@ class BaseStrategy:
 
         self.slippage.append((slippage, trade.size))
 
-    def on_trade(self, trade):
+    def on_trade(self, trade, time):
         self.record_trade_slippage(trade)
-        self.n_trades += 1
+        self.trades.append((time, trade))
 
     def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
         self.schedule += self.execution_strategy.schedule_order(
@@ -92,7 +97,16 @@ class BaseStrategy:
         if abs(self.sensitivity) > 1.0:
             raise ValueError("Sensitivity must be between 0 and 1.")
 
+        last_trade_time = self.trades[-1][0] if self.trades else -float("inf")
+
+        if time - last_trade_time < self.cooldown:
+            return None  # In cooldown period
+
         signal_value = self.signal.compute(book, history)
+
+        self.signal_state = (
+            self.smoothing * signal_value + (1 - self.smoothing) * self.signal_state
+        )
 
         if signal_value > self.sensitivity:
             best_ask = book.best_ask()
@@ -140,7 +154,7 @@ class BaseStrategy:
 
         return None
 
-    def update(self, events):
+    def update(self, time, events):
         for event in events:
             if event.type != EventType.TRADE:
                 continue
@@ -152,11 +166,7 @@ class BaseStrategy:
                 # Sold
                 self.inventory -= event.size
                 self.cash += event.size * event.price
-            self.on_trade(event)
-
-    def reset(self, initial_cash=None, initial_inventory=0):
-        self.cash = initial_cash or self.initial_cash
-        self.inventory = initial_inventory
+            self.on_trade(event, time)
 
     def compute_average_slippage(self):
         if not self.slippage:
@@ -188,7 +198,7 @@ class BaseStrategy:
             "Total PnL": f"${self.total_pnl(book):.2f}",
             "Average Slippage": f"${self.compute_average_slippage():.4f}",
             "Total Slippage": f"${self.compute_total_slippage():.2f}",
-            "Number of Trades": self.n_trades,
+            "Number of Trades": len(self.trades),
         }
 
         print(
@@ -196,3 +206,11 @@ class BaseStrategy:
                 metrics.items(), headers=["Metric", "Value"], tablefmt="fancy_grid"
             )
         )
+
+    def reset(self, initial_cash=None, initial_inventory=0):
+        self.cash = initial_cash or self.initial_cash
+        self.inventory = initial_inventory
+        self.parent_order_dict = {}
+        self.schedule = []
+        self.slippage = []
+        self.trades = []
