@@ -22,6 +22,7 @@ class Order:
         size,
         type: OrderType,
         id=None,
+        parent_id=None,
     ):
 
         self.side = side
@@ -33,7 +34,7 @@ class Order:
         self.size = size
         self.type = type
 
-        self.parent_id = uuid.uuid4().int
+        self.parent_id = parent_id or uuid.uuid4().int
 
         self.id = id or uuid.uuid4().int
         self.timestamp = datetime.now()

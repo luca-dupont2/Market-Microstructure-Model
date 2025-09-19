@@ -111,8 +111,7 @@ class BlockExecution(ExecutionStrategy):
         schedule_time: float,
         total_volume: int,
         side: OrderSide,
-        parent_id: int | str | None = None,
-    ) -> list[tuple[float, int, OrderSide, int | str]]:
+    ) -> list[tuple[float, int, OrderSide, int]]:
         """
         Schedule an order using the Block execution strategy.
 
@@ -128,8 +127,7 @@ class BlockExecution(ExecutionStrategy):
         Raises:
           ValueError: If total_volume or schedule_time is not positive.
         """
-        if not parent_id:
-            parent_id = uuid4().int
+        parent_id = uuid4().int
 
         schedule = [(schedule_time, total_volume, side, parent_id)]
 
