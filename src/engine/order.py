@@ -46,9 +46,6 @@ class Order:
             return -self.price
         return self.price
 
-    def round_price(self, tick_size):
-        self.price = round(self.price / tick_size) * tick_size
-
     def __lt__(self, other):
         if self.price != other.price:
             return self.price < other.price

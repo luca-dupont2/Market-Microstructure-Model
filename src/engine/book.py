@@ -10,6 +10,7 @@ from .events import (
     Event,
 )
 from datetime import datetime
+from ..orderflow.generator import round_to_tick
 
 
 class LimitOrderBook:
@@ -166,7 +167,7 @@ class LimitOrderBook:
         """
         if levels is None:
             levels = len(self.ask_orders)
-            
+
         if levels < 1 or levels > len(self.ask_orders):
             return 0
 
@@ -290,7 +291,7 @@ class LimitOrderBook:
 
         trade_events = []
 
-        order.price = round(order.price / self.tick_size) * self.tick_size
+        order.price = round_to_tick(order.price, self.tick_size)
 
         if order.side == OrderSide.BUY:  # Buy order
             while self.ask_orders and order.size > 0:

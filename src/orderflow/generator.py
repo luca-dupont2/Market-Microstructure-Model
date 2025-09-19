@@ -3,6 +3,10 @@ from numpy import clip
 from ..engine.order import OrderSide, OrderType, Order
 
 
+def round_to_tick(price, tick_size):
+    return round(price / tick_size) * tick_size
+
+
 class Generator:
     def __init__(self, config, rng):
         seed = config["SIM_PARAMS"]["random_seed"]
@@ -73,7 +77,7 @@ class Generator:
 
         price = best_price + direction * price_change * self.tick_size
 
-        price = round(price / self.tick_size) * self.tick_size
+        price = round_to_tick(price, self.tick_size)
 
         return max(price, 0)
 
