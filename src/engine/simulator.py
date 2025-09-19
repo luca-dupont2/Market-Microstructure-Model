@@ -116,6 +116,9 @@ class Simulator:
         for agent in self.agents:
             order = agent.step(self.current_time, self.order_book, self.metrics.data)
 
+            if self.current_time >= self.next_record_time:
+                agent.record_metrics(self.current_time, self.order_book)
+
             if order:
                 events = self.order_book.process_order(order)
                 self.simlogger.log_events(events)
@@ -123,8 +126,8 @@ class Simulator:
                 agent.update(self.current_time, events)
 
     def step(self):
-        self.order_flow_step()
         self.strategy_step()
+        self.order_flow_step()
 
     def record_metrics(self, events):
         t = self.current_time
