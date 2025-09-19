@@ -3,24 +3,27 @@ import matplotlib.widgets as widgets
 import numpy as np
 
 
-def plot_price(df, title="Price Evolution"):
+def plot_price(book_metrics_df, title="Price Evolution"):
     fig, ax = plt.subplots(figsize=(12, 6))
 
     line_colors = ["blue", "green", "red"]
     lines = {}
     (lines["Mid Price"],) = ax.plot(
-        df["time"], df["mid_price"], label="Mid Price", color=line_colors[0]
+        book_metrics_df["time"],
+        book_metrics_df["mid_price"],
+        label="Mid Price",
+        color=line_colors[0],
     )
     (lines["Best Bid"],) = ax.plot(
-        df["time"],
-        df["best_bid"],
+        book_metrics_df["time"],
+        book_metrics_df["best_bid"],
         label="Best Bid",
         color=line_colors[1],
         linestyle="--",
     )
     (lines["Best Ask"],) = ax.plot(
-        df["time"],
-        df["best_ask"],
+        book_metrics_df["time"],
+        book_metrics_df["best_ask"],
         label="Best Ask",
         color=line_colors[2],
         linestyle="--",
@@ -54,12 +57,12 @@ def plot_price(df, title="Price Evolution"):
     plt.show()
 
 
-def plot_spread(df, title="Average Spread (20 Buckets)"):
+def plot_spread(book_metrics_df, title="Average Spread (20 Buckets)"):
     fig, ax = plt.subplots(figsize=(10, 5))
 
     # Bin into 20 buckets
-    time = df["time"].to_numpy()
-    spread = df["spread"].to_numpy()
+    time = book_metrics_df["time"].to_numpy()
+    spread = book_metrics_df["spread"].to_numpy()
     bins = np.linspace(time.min(), time.max(), 21)  # 20 equal bins
     inds = np.digitize(time, bins) - 1
 
@@ -78,12 +81,12 @@ def plot_spread(df, title="Average Spread (20 Buckets)"):
     plt.show()
 
 
-def plot_volume(df, title="Average Volume (20 Buckets)"):
+def plot_volume(book_metrics_df, title="Average Volume (20 Buckets)"):
     fig, ax = plt.subplots(figsize=(10, 5))
 
     # Bin into 20 buckets
-    time = df["time"].to_numpy()
-    volume = df["volume"].to_numpy()
+    time = book_metrics_df["time"].to_numpy()
+    volume = book_metrics_df["volume"].to_numpy()
     bins = np.linspace(time.min(), time.max(), 21)  # 20 equal bins
     inds = np.digitize(time, bins) - 1
 
@@ -102,10 +105,20 @@ def plot_volume(df, title="Average Volume (20 Buckets)"):
     plt.show()
 
 
-def plot_depth(df, title="Order Book Depth"):
+def plot_depth(book_metrics_df, title="Order Book Depth"):
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(df["time"], df["depth_bid"], label="Bid Depth", color="green")
-    ax.plot(df["time"], df["depth_ask"], label="Ask Depth", color="red")
+    ax.plot(
+        book_metrics_df["time"],
+        book_metrics_df["depth_bid"],
+        label="Bid Depth",
+        color="green",
+    )
+    ax.plot(
+        book_metrics_df["time"],
+        book_metrics_df["depth_ask"],
+        label="Ask Depth",
+        color="red",
+    )
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Number of Orders")
     ax.set_title(title)
@@ -139,12 +152,204 @@ def plot_order_size_and_price_hists(
     plt.show()
 
 
-def plot_all(metrics_df, snapshot_df=None):
+def plot_book_drawdown(book_metrics_df, title="Mid Price Drawdown Curve"):
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    mid_prices = book_metrics_df["mid_price"].to_numpy()
+    if mid_prices.size == 0:
+        return
+
+    curve = mid_prices / mid_prices[0]
+    peak = np.maximum.accumulate(curve)
+    drawdown = (curve - peak) / peak
+
+    ax.fill_between(
+        book_metrics_df["time"], drawdown, color="red", alpha=0.4, step="mid"
+    )
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Drawdown (fraction)")
+    ax.set_title(title)
+
+    max_dd = drawdown.min()
+    ax.annotate(
+        f"Max Drawdown: {max_dd:.2%}",
+        xy=(book_metrics_df["time"].iloc[np.argmin(drawdown)], max_dd),
+        xytext=(0.7, 0.9),
+        textcoords="axes fraction",
+        fontsize=12,
+        color="darkred",
+        arrowprops=dict(arrowstyle="->", color="darkred"),
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="darkred", alpha=0.7),
+    )
+    ax.grid(True, alpha=0.3)
+    plt.show()
+
+
+def plot_book_all(book_metrics_df, snapshot_df=None):
     """Convenience function to plot multiple key metrics."""
-    plot_price(metrics_df)
-    plot_spread(metrics_df)
-    plot_volume(metrics_df)
-    plot_depth(metrics_df)
+    plot_price(book_metrics_df)
+    plot_book_drawdown(book_metrics_df)
+    plot_spread(book_metrics_df)
+    plot_volume(book_metrics_df)
+    plot_depth(book_metrics_df)
 
     if snapshot_df is not None:
         plot_order_size_and_price_hists(snapshot_df)
+
+
+def plot_equity_curve(strategy_metrics_df, title="Equity Curve", strategy_id=None):
+    if strategy_id is not None:
+        title = f"{title} - {strategy_id}"
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(
+        strategy_metrics_df["time"],
+        strategy_metrics_df["equity"],
+        label="Equity",
+        color="blue",
+    )
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Equity ($)")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    plt.show()
+
+
+def plot_pnl(strategy_metrics_df, title="PnL Breakdown", strategy_id=None):
+    if strategy_id is not None:
+        title = f"{title} - {strategy_id}"
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(
+        strategy_metrics_df["time"],
+        strategy_metrics_df["realized_pnl"],
+        label="Realized PnL",
+        color="green",
+    )
+    ax.plot(
+        strategy_metrics_df["time"],
+        strategy_metrics_df["unrealized_pnl"],
+        label="Unrealized PnL",
+        color="orange",
+    )
+    ax.plot(
+        strategy_metrics_df["time"],
+        strategy_metrics_df["total_pnl"],
+        label="Total PnL",
+        color="blue",
+        linewidth=2,
+    )
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("PnL ($)")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    plt.show()
+
+
+def plot_inventory_and_cash(
+    strategy_metrics_df, title="Cash & Inventory Evolution", strategy_id=None
+):
+    if strategy_id is not None:
+        title = f"{title} - {strategy_id}"
+
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+
+    ax1.plot(
+        strategy_metrics_df["time"],
+        strategy_metrics_df["cash"],
+        label="Cash",
+        color="blue",
+    )
+    ax1.set_xlabel("Time (s)")
+    ax1.set_ylabel("Cash ($)", color="blue")
+    ax1.tick_params(axis="y", labelcolor="blue")
+
+    ax2 = ax1.twinx()
+    ax2.plot(
+        strategy_metrics_df["time"],
+        strategy_metrics_df["inventory"],
+        label="Inventory",
+        color="red",
+    )
+    ax2.set_ylabel("Inventory (shares)", color="red")
+    ax2.tick_params(axis="y", labelcolor="red")
+
+    fig.suptitle(title)
+    ax1.grid(True, alpha=0.3)
+    plt.show()
+
+
+def plot_strategy_drawdown(
+    strategy_metrics_df, title="Drawdown Curve", strategy_id=None
+):
+    if strategy_id is not None:
+        title = f"{title} - {strategy_id}"
+
+    equity = strategy_metrics_df["equity"].to_numpy()
+    if equity.size == 0:
+        return
+
+    curve = equity / equity[0]
+    peak = np.maximum.accumulate(curve)
+    drawdown = (curve - peak) / peak
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.fill_between(
+        strategy_metrics_df["time"], drawdown, color="red", alpha=0.4, step="mid"
+    )
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Drawdown (fraction)")
+    ax.set_title(title)
+
+    max_dd = drawdown.min()
+    ax.annotate(
+        f"Max Drawdown: {max_dd:.2%}",
+        xy=(strategy_metrics_df["time"].iloc[np.argmin(drawdown)], max_dd),
+        xytext=(0.7, 0.9),
+        textcoords="axes fraction",
+        fontsize=12,
+        color="darkred",
+        arrowprops=dict(arrowstyle="->", color="darkred"),
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="darkred", alpha=0.7),
+    )
+
+    ax.grid(True, alpha=0.3)
+    plt.show()
+
+
+def plot_return_histogram(
+    strategy_metrics_df, title="Distribution of Returns", strategy_id=None
+):
+    if strategy_id is not None:
+        title = f"{title} - {strategy_id}"
+
+    equity = strategy_metrics_df["equity"].to_numpy()
+    if equity.size < 2:
+        return
+
+    returns = np.diff(equity) / equity[:-1]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.hist(returns, bins=30, color="purple", edgecolor="black", alpha=0.7)
+    ax.set_xlabel("Return")
+    ax.set_ylabel("Frequency")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    plt.show()
+
+
+def plot_strategy_all(strategy_metrics_df, strategy_id=None):
+    """Convenience function to plot strategy performance metrics."""
+    plot_equity_curve(strategy_metrics_df, strategy_id=strategy_id)
+    plot_pnl(strategy_metrics_df, strategy_id=strategy_id)
+    plot_inventory_and_cash(strategy_metrics_df, strategy_id=strategy_id)
+    plot_strategy_drawdown(strategy_metrics_df, strategy_id=strategy_id)
+    plot_return_histogram(strategy_metrics_df, strategy_id=strategy_id)
+
+
+def plot_all(book_metrics_df, strategy_metrics_df, strategy_id=None, snapshot_df=None):
+    """Convenience function to plot both book and strategy metrics."""
+    plot_book_all(book_metrics_df, snapshot_df)
+    plot_strategy_all(strategy_metrics_df, strategy_id=strategy_id)
