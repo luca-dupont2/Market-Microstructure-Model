@@ -9,12 +9,16 @@ class ManualTaker(BaseStrategy):
         id=None,
         initial_cash=10000,
         initial_inventory=0,
+        *args,
+        **kwargs,
     ):
         super().__init__(
             execution_strategy=execution_strategy,
             id=id,
             initial_cash=initial_cash,
             initial_inventory=initial_inventory,
+            *args,
+            **kwargs,
         )
 
 
@@ -29,6 +33,8 @@ class MomentumTaker(BaseStrategy):
         id=None,
         initial_cash=10000,
         initial_inventory=0,
+        *args,
+        **kwargs,
     ):
         smoothing = 2 / (look_back + 1)
         super().__init__(
@@ -40,6 +46,8 @@ class MomentumTaker(BaseStrategy):
             id=id,
             initial_cash=initial_cash,
             initial_inventory=initial_inventory,
+            *args,
+            **kwargs,
         )
 
 

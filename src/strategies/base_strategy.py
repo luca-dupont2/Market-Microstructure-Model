@@ -16,6 +16,7 @@ class BaseStrategy:
         sensitivity: float = 0.5,
         smoothing: float = 0.25,
         cooldown: float = 120.0,  # seconds. Should be > record interval
+        record_metrics: bool = True,
         signal=None,
         id=None,
         initial_cash=10000,
@@ -36,7 +37,7 @@ class BaseStrategy:
         self.schedule = []
         self.slippage = []
         self.trades = []
-        self.metrics = StrategyMetrics(self.id)
+        self.metrics = StrategyMetrics(self.id) if record_metrics else None
 
     def record_trade_slippage(self, trade):
         """
@@ -183,7 +184,8 @@ class BaseStrategy:
             self.on_trade(event, time)
 
     def record_metrics(self, t, book):
-        self.metrics.record(t, self, book)
+        if self.metrics:
+            self.metrics.record(t, self, book)
 
     def compute_average_slippage(self):
         if not self.slippage:
