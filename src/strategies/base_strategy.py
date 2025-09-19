@@ -1,6 +1,6 @@
 from src.engine.order import Order, OrderSide, OrderType
 from ..engine.events import EventType
-from tabulate import tabulate
+from .strategy_metrics import StrategyMetrics
 
 
 class BaseStrategy:
@@ -36,6 +36,7 @@ class BaseStrategy:
         self.schedule = []
         self.slippage = []
         self.trades = []
+        self.metrics = StrategyMetrics()
 
     def record_trade_slippage(self, trade):
         """
@@ -54,22 +55,24 @@ class BaseStrategy:
         self.record_trade_slippage(trade)
         self.trades.append((time, trade))
 
-    def _create_market_order(self, volume, side):
+    def _create_market_order(self, volume, side, parent_id):
         return Order(
             type=OrderType.MARKET,
             side=side,
             size=volume,
             price=None,
             id=self.id,
+            parent_id=parent_id,
         )
 
-    def _create_limit_order(self, volume, side, price):
+    def _create_limit_order(self, volume, side, price, parent_id):
         return Order(
             type=OrderType.LIMIT,
             side=side,
             size=volume,
             price=price,
             id=self.id,
+            parent_id=parent_id,
         )
 
     def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
@@ -150,13 +153,7 @@ class BaseStrategy:
         if time >= self.schedule[0][0]:
             _, volume, side, parent_id = self.schedule.pop(0)
 
-            order = Order(
-                type=OrderType.MARKET,
-                side=side,
-                size=volume,
-                price=None,
-                id=self.id,
-            )
+            order = self._create_market_order(volume, side, parent_id)
 
             if not self.validate_order(order, book):
                 return None
@@ -185,6 +182,9 @@ class BaseStrategy:
                 self.cash += event.size * event.price
             self.on_trade(event, time)
 
+    def record_metrics(self, t, book):
+        self.metrics.record(t, self, book)
+
     def compute_average_slippage(self):
         if not self.slippage:
             return 0.0
@@ -204,25 +204,6 @@ class BaseStrategy:
 
     def total_pnl(self, book):
         return self.realized_pnl() + self.unrealized_pnl(book)
-
-    def print_summary(self, book):
-        metrics = {
-            "Strategy ID": self.id,
-            "Final Cash": f"${self.cash:.2f}",
-            "Final Inventory": f"{self.inventory} shares",
-            "Realized PnL": f"${self.realized_pnl():.2f}",
-            "Unrealized PnL": f"${self.unrealized_pnl(book):.2f}",
-            "Total PnL": f"${self.total_pnl(book):.2f}",
-            "Average Slippage": f"${self.compute_average_slippage():.4f}",
-            "Total Slippage": f"${self.compute_total_slippage():.2f}",
-            "Number of Trades": len(self.trades),
-        }
-
-        print(
-            tabulate(
-                metrics.items(), headers=["Metric", "Value"], tablefmt="fancy_grid"
-            )
-        )
 
     def reset(self, initial_cash=None, initial_inventory=0):
         self.cash = initial_cash or self.initial_cash
