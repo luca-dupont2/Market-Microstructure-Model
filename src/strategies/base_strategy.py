@@ -1,3 +1,4 @@
+from datetime import datetime
 from src.engine.order import Order, OrderSide, OrderType
 from ..engine.events import EventType
 from .strategy_metrics import StrategyMetrics
@@ -206,6 +207,22 @@ class BaseStrategy:
 
     def total_pnl(self, book):
         return self.realized_pnl() + self.unrealized_pnl(book)
+
+    def save_metrics(self, filename=None):
+        if not self.metrics:
+            print("No metrics to save.")
+            return
+
+        df = self.metrics.get_dataframe()
+
+        if not filename:
+            now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+            filename = f"data/{now}-{self.id}-metrics.csv"
+        else:
+            filename = f"data/{filename}.csv"
+
+        df.to_csv(filename, index=False)
+        print(f"Metrics saved in {filename}")
 
     def reset(self, initial_cash=None, initial_inventory=0):
         self.cash = initial_cash or self.initial_cash
