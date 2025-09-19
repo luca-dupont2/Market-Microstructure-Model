@@ -54,6 +54,24 @@ class BaseStrategy:
         self.record_trade_slippage(trade)
         self.trades.append((time, trade))
 
+    def _create_market_order(self, volume, side):
+        return Order(
+            type=OrderType.MARKET,
+            side=side,
+            size=volume,
+            price=None,
+            id=self.id,
+        )
+
+    def _create_limit_order(self, volume, side, price):
+        return Order(
+            type=OrderType.LIMIT,
+            side=side,
+            size=volume,
+            price=price,
+            id=self.id,
+        )
+
     def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
         self.schedule += self.execution_strategy.schedule_order(
             schedule_time, volume, side, *args, **kwargs
@@ -138,7 +156,6 @@ class BaseStrategy:
                 size=volume,
                 price=None,
                 id=self.id,
-                parent_id=parent_id,
             )
 
             if not self.validate_order(order, book):

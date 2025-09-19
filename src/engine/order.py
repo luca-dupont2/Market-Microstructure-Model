@@ -16,7 +16,12 @@ class OrderType(Enum):
 
 class Order:
     def __init__(
-        self, side: OrderSide, price, size, type: OrderType, id=None, parent_id=None
+        self,
+        side: OrderSide,
+        price,
+        size,
+        type: OrderType,
+        id=None,
     ):
 
         self.side = side
@@ -28,7 +33,7 @@ class Order:
         self.size = size
         self.type = type
 
-        self.parent_id = parent_id
+        self.parent_id = uuid.uuid4().int
 
         self.id = id or uuid.uuid4().int
         self.timestamp = datetime.now()
