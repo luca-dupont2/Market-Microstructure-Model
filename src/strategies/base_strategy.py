@@ -36,7 +36,7 @@ class BaseStrategy:
         self.schedule = []
         self.slippage = []
         self.trades = []
-        self.metrics = StrategyMetrics()
+        self.metrics = StrategyMetrics(self.id)
 
     def record_trade_slippage(self, trade):
         """

@@ -124,10 +124,10 @@ class Metrics:
     def print_summary(self):
         """Print a summary of key metrics."""
         metrics = {
-            "Annualized Return": f"{100*self.get_annualized_return():.3f} %",
-            "Annualized Volatility": f"{100*self.get_annualized_volatility():.2f} %",
+            "Annualized Return": f"{self.get_annualized_return():.3%}",
+            "Annualized Volatility": f"{self.get_annualized_volatility():.2%}",
             "Sharpe Ratio": f"{self.get_annualized_sharpe():.2f}",
-            "Max Drawdown": f"{100*self.get_max_drawdown():.2f} %",
+            "Max Drawdown": f"{self.get_max_drawdown():.2%}",
             "Total Volume": f"{self.get_total_volume()} shares",
             "Number of Trades": f"{self.get_number_of_trades()}",
         }

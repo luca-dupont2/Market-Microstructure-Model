@@ -7,9 +7,10 @@ ANNUAL_TIME_SECONDS = 252 * 6.5 * 60 * 60
 
 
 class StrategyMetrics:
-    def __init__(self):
+    def __init__(self, id: str | int):
         self.data = defaultdict(list)
         self.time = []
+        self.id = id
 
     def record(self, t, strategy, order_book):
         """Record strategy performance metrics at simulation time t."""
@@ -94,6 +95,7 @@ class StrategyMetrics:
 
     def print_summary(self):
         metrics = {
+            "Strategy ID": self.id,
             "Final Cash": f"${self.data['cash'][-1]:.2f}" if self.data["cash"] else "-",
             "Final Inventory": (
                 f"{self.data['inventory'][-1]} shares"
@@ -113,10 +115,10 @@ class StrategyMetrics:
             "Total PnL": (
                 f"${self.data['total_pnl'][-1]:.2f}" if self.data["total_pnl"] else "-"
             ),
-            "Annualized Return": f"{100*self.get_annualized_return():.5f} %",
-            "Annualized Volatility": f"{100*self.get_annualized_volatility():.2f} %",
+            "Annualized Return": f"{self.get_annualized_return():.3%}",
+            "Annualized Volatility": f"{self.get_annualized_volatility():.2%}",
             "Sharpe Ratio": f"{self.get_annualized_sharpe():.2f}",
-            "Max Drawdown": f"{100*self.get_max_drawdown():.2f} %",
+            "Max Drawdown": f"{self.get_max_drawdown():.2%}",
             "Average Slippage": (
                 f"{self.data['avg_slippage'][-1]:.4f}"
                 if self.data["avg_slippage"]
