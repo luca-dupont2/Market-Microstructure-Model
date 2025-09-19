@@ -14,7 +14,7 @@ from .events import (
 
 from .simulator import Simulator
 
-from .metrics import Metrics
+from .book_metrics import Metrics
 
 __all__ = [
     "Order",

@@ -1,4 +1,4 @@
-from .engine import book, events, metrics, order, simulator
+from .engine import book, book_metrics, events, order, simulator
 
 from .strategies import (
     base_strategy,
@@ -23,7 +23,7 @@ __all__ = [
     #           Engine
     "book",
     "events",
-    "metrics",
+    "book_metrics",
     "order",
     "simulator",
     #           Strategies

@@ -1,7 +1,7 @@
 from .book import LimitOrderBook, Order, OrderSide, OrderType
 from ..utils import SimLogger
 from ..orderflow.generator import Generator
-from .metrics import Metrics
+from .book_metrics import Metrics
 from datetime import datetime
 from pandas import DataFrame
 
@@ -80,6 +80,14 @@ class Simulator:
         best_bid = self.order_book.best_bid().get_price()
 
         order = self.generator.gen_order(best_ask, best_bid)
+
+        if self.current_time >= self.next_record_time:
+            events = self.order_book.flush_event_queue()
+            print(f"t={self.current_time:.2f}s", end="\r")
+
+            self.record_metrics(events)
+
+            self.next_record_time += self.record_interval
 
         # Specific handling for CANCEL orders (assign id to cancel)
         if order.type == OrderType.CANCEL:
@@ -161,14 +169,6 @@ class Simulator:
         while self.current_time < T_sim:
 
             self.step()
-
-            if self.current_time >= self.next_record_time:
-                events = self.order_book.flush_event_queue()
-                print(f"t={self.current_time:.2f}s", end="\r")
-
-                self.record_metrics(events)
-
-                self.next_record_time += self.record_interval
 
             self.current_time += dt
 
