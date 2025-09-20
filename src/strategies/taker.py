@@ -28,7 +28,7 @@ class MomentumTaker(BaseStrategy):
         execution_strategy,
         sensitivity: float = 0.5,
         cash_buffer: float = 0.25,
-        alpha: float = 200.0,
+        alpha: float = 80.0,
         look_back: int = 10,
         id=None,
         initial_cash=10000,
