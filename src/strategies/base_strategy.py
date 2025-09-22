@@ -113,7 +113,7 @@ class BaseStrategy:
 
         return True
 
-    def process_signal(self, book, history, time) -> None:
+    def process_signal(self, time, book, history) -> None:
         if self.signal is None:
             return None
 
@@ -147,7 +147,7 @@ class BaseStrategy:
             self.schedule_order(time, volume, OrderSide.SELL)
 
     def step(self, time, book, history):
-        self.process_signal(book, history, time)
+        self.process_signal(time, book, history)
 
         if not self.schedule:
             return None

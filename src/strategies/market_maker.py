@@ -28,3 +28,6 @@ class MarketMaker(BaseStrategy):
         self.my_order_meta = {}
         # Next time to refresh quotes
         self.next_quote_time = 0.0
+
+    def step(self, time, book, history):
+        pass
