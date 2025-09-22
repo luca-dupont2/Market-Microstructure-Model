@@ -37,7 +37,6 @@ CONFIG = {
     "STRATEGY_PARAMS": {
         "market_maker": {
             "inventory_limit": 100,
-            "gamma": 0.1,  # risk aversion
             "quote_size": 10,
         },
         "taker": {
