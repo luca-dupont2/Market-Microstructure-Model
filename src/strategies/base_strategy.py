@@ -2,6 +2,7 @@ from datetime import datetime
 from src.engine.order import Order, OrderSide, OrderType
 from ..engine.events import EventType
 from .strategy_metrics import StrategyMetrics
+import uuid
 
 
 class BaseStrategy:
@@ -63,7 +64,7 @@ class BaseStrategy:
             side=side,
             size=volume,
             price=None,
-            id=self.id,
+            id=self.id + uuid.uuid4().hex[:6],
             parent_id=parent_id,
         )
 
@@ -73,7 +74,7 @@ class BaseStrategy:
             side=side,
             size=volume,
             price=price,
-            id=self.id,
+            id=self.id + uuid.uuid4().hex[:6],
             parent_id=parent_id,
         )
 
@@ -106,7 +107,7 @@ class BaseStrategy:
         # Naive validation logic (no book pre-walking)
         if order.side == OrderSide.BUY:
             if order.type == OrderType.LIMIT:
-                total_cost = order.size * order.price
+                total_cost = order.size * order.get_price()
                 if self.cash < total_cost:
                     print("Insufficient cash for buy limit order.")
                     return False
@@ -151,11 +152,11 @@ class BaseStrategy:
 
             self.schedule_order(time, volume, OrderSide.SELL)
 
-    def step(self, time, book, history) -> list[Order]:
+    def step(self, time, book, history) -> tuple[list[Order], list[Order]]:
         self.process_signal(time, book, history)
 
         if not self.schedule:
-            return []
+            return [], []
 
         if time >= self.schedule[0][0]:
             _, volume, side, parent_id = self.schedule.pop(0)
@@ -163,7 +164,7 @@ class BaseStrategy:
             order = self._create_market_order(volume, side, parent_id)
 
             if not self.validate_order(order, book):
-                return []
+                return [], []
 
             if parent_id not in self.parent_order_dict:
                 current_best = (
@@ -171,23 +172,33 @@ class BaseStrategy:
                 )
                 self.parent_order_dict[parent_id] = current_best.get_price()
 
-            return [order]
+            return [], [order]
 
-        return []
+        return [], []
 
     def update(self, time, events):
+        id_len = len(self.id)
+        if not events:
+            return
         for event in events:
             if event.type != EventType.TRADE:
                 continue
-            if event.buy_order_id == self.id:
+            if (
+                type(event.buy_order_id) == str
+                and event.buy_order_id[:id_len] == self.id
+            ):
                 # Bought
                 self.inventory += event.size
                 self.cash -= event.size * event.price
-            elif event.sell_order_id == self.id:
+                self.on_trade(event, time)
+            elif (
+                type(event.sell_order_id) == str
+                and event.sell_order_id[:id_len] == self.id
+            ):
                 # Sold
                 self.inventory -= event.size
                 self.cash += event.size * event.price
-            self.on_trade(event, time)
+                self.on_trade(event, time)
 
     def record_metrics(self, t, book):
         if self.metrics:

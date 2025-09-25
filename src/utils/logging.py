@@ -51,11 +51,11 @@ class SimLogger:
 
     def log_order(self, order):
         if isinstance(order, Order):
-            self.logger.info(
+            self.logger.debug(
                 f"NEW ORDER: {order.id} {order.side} {order.type} {order.size} @ {order.price}"
             )
         elif isinstance(order, NewOrderEvent):
-            self.logger.info(
+            self.logger.debug(
                 f"NEW ORDER EVENT: {order.side} {OrderType.MARKET if order.price == None else OrderType.LIMIT} {order.size} @ {order.price}"
             )
 
@@ -63,6 +63,8 @@ class SimLogger:
         self.logger.debug(f"CANCEL: order_id={cancel_event.order_id}")
 
     def log_events(self, events):
+        if not events:
+            return
         for event in events:
             if event.type == EventType.TRADE:
                 self.log_trade(event)

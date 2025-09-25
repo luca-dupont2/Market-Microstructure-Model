@@ -1,7 +1,8 @@
 import math
 import uuid
 from .base_strategy import BaseStrategy
-from ..engine.order import Order, OrderType, OrderSide
+from ..engine.order import Order, OrderSide
+from ..engine.events import EventType
 from ..orderflow.generator import round_to_tick
 
 
@@ -11,7 +12,6 @@ class SymmetricMaker(BaseStrategy):
         self,
         execution_strategy,
         config: dict,
-        look_back: int = 10,  # for volatility estimation
         quote_size: int = 10,
         max_inventory: int = 100,
         quote_update_interval: int = 10,  # in multiples of dt
@@ -21,7 +21,6 @@ class SymmetricMaker(BaseStrategy):
         super().__init__(execution_strategy, *args, **kwargs)
         self.quote_size = quote_size
         self.max_inventory = max_inventory
-        self.look_back = look_back
 
         self.dt = config["SIM_PARAMS"]["dt"]
         self.tick_size = config["SIM_PARAMS"]["tick_size"]
@@ -32,22 +31,29 @@ class SymmetricMaker(BaseStrategy):
         # Next time to refresh quotes
         self.next_quote_time = 0.0
 
-    def step(self, time, book, history):
+    def step(self, time, book, history) -> tuple[list[Order], list[Order]]:
+        orders = []
+        cancels = []
+
         if time >= self.next_quote_time:
             self.next_quote_time = time + self.quote_update_interval
 
             # Cancel existing quotes
-            cancels = []
-            for quote in self.quotes["bid"] + self.quotes["ask"]:
+            for quote in self.quotes["bid"]:
                 cancel_order = self._create_cancel_order(quote.id)
                 cancels.append(cancel_order)
+
+            for quote in self.quotes["ask"]:
+                cancel_order = self._create_cancel_order(quote.id)
+                cancels.append(cancel_order)
+
             self.quotes = {"bid": [], "ask": []}
 
             mid_price = book.mid_price()
             book_spread = book.get_spread()
 
             if book_spread == float("inf") or mid_price == 0:
-                return  # Cannot quote without a valid spread or mid price
+                return cancels, []  # Cannot quote without a valid spread or mid price
 
             # Determine new quote prices
             bid_price = mid_price - book_spread / 2
@@ -57,21 +63,67 @@ class SymmetricMaker(BaseStrategy):
             ask_price = round_to_tick(ask_price, self.tick_size)
 
             # Place new quotes
-            bid_order_id = self._create_limit_order(
+            bid_order = self._create_limit_order(
                 volume=self.quote_size,
                 side=OrderSide.BUY,
                 price=bid_price,
                 parent_id=uuid.uuid4().int,
             )
-            ask_order_id = self._create_limit_order(
+            ask_order = self._create_limit_order(
                 volume=self.quote_size,
                 side=OrderSide.SELL,
                 price=ask_price,
                 parent_id=uuid.uuid4().int,
             )
 
-            self.quotes["bid"].append(bid_order_id)
-            self.quotes["ask"].append(ask_order_id)
+            if (
+                self.inventory + self.quote_size < self.max_inventory
+                and self.validate_order(bid_order, book)
+            ):
+                orders.append(bid_order)
+                self.quotes["bid"].append(bid_order)
+
+            if (
+                self.inventory - self.quote_size > -self.max_inventory
+                and self.validate_order(ask_order, book)
+            ):
+                orders.append(ask_order)
+                self.quotes["ask"].append(ask_order)
+
+        return cancels, orders
+
+    def on_trade(self, trade, time):  # No slippage handling for limit orders
+        self.trades.append((time, trade))
+
+    def update(self, time, events):
+        id_len = len(self.id)
+        if not events:
+            return
+        for event in events:
+            if event.type != EventType.TRADE:
+                continue
+            if (
+                type(event.buy_order_id) == str
+                and event.buy_order_id[:id_len] == self.id
+            ):
+                # Bought
+                self.inventory += event.size
+                self.cash -= event.size * event.price
+                self.quotes["bid"] = [
+                    q for q in self.quotes["bid"] if q.id != event.buy_order_id
+                ]
+                self.on_trade(event, time)
+            elif (
+                type(event.sell_order_id) == str
+                and event.sell_order_id[:id_len] == self.id
+            ):
+                # Sold
+                self.inventory -= event.size
+                self.cash += event.size * event.price
+                self.quotes["ask"] = [
+                    q for q in self.quotes["ask"] if q.id != event.sell_order_id
+                ]
+                self.on_trade(event, time)
 
 
 # Market making strategy with Avellaneda-Stoikov pricing model
@@ -140,5 +192,8 @@ class InventoryMaker(SymmetricMaker):
 
         return variance / self.dt
 
-    def step(self, time, book, history):
-        pass
+    def step(self, time, book, history) -> tuple[list[Order], list[Order]]:
+        orders = []
+        cancels = []
+        # Implement the market making logic here
+        return cancels, orders

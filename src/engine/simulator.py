@@ -1,4 +1,5 @@
 from .book import LimitOrderBook, Order, OrderSide, OrderType
+from .events import Event
 from ..utils import SimLogger
 from ..orderflow.generator import Generator
 from .book_metrics import Metrics
@@ -75,7 +76,7 @@ class Simulator:
             f"Populated initial book with {n_levels} levels of random limit orders."
         )
 
-    def order_flow_step(self):
+    def order_flow_step(self) -> list[Event]:
         best_ask = self.order_book.best_ask().get_price()
         best_bid = self.order_book.best_bid().get_price()
 
@@ -87,14 +88,12 @@ class Simulator:
 
             self.record_metrics(events)
 
-            self.next_record_time += self.record_interval
-
         # Specific handling for CANCEL orders (assign id to cancel)
         if order.type == OrderType.CANCEL:
             all_ids = self.order_book.get_all_order_ids()
 
             if not all_ids:
-                return
+                return []
 
             cancelled = self.rng.choice(all_ids)
 
@@ -103,31 +102,41 @@ class Simulator:
             cancel_event = self.order_book.process_order(order)
 
             if cancel_event:
-                self.simlogger.log_cancel(cancel_event)
+                self.simlogger.log_events(cancel_event)
+                return cancel_event
+
             else:
                 self.simlogger.warning(f"Failed to cancel order {cancelled}")
-
-            return
+                return []
 
         events = self.order_book.process_order(order)
         self.simlogger.log_events(events)
 
-    def strategy_step(self):
-        for agent in self.agents:
-            orders = agent.step(self.current_time, self.order_book, self.metrics.data)
+        return events
 
-            if self.current_time >= self.next_record_time:
-                agent.record_metrics(self.current_time, self.order_book)
+    def strategy_step(self, orderflow_events=[]):
+        for agent in self.agents:
+            cancels, orders = agent.step(
+                self.current_time, self.order_book, self.metrics.data
+            )
+
+            for cancel in cancels:
+                cancel_events = self.order_book.process_order(cancel)
+                self.simlogger.log_events(cancel_events)
 
             for order in orders:
                 events = self.order_book.process_order(order)
                 self.simlogger.log_events(events)
 
-                agent.update(self.current_time, events)
+                agent.update(self.current_time, events + orderflow_events)
+
+            if self.current_time >= self.next_record_time:
+                agent.record_metrics(self.current_time, self.order_book)
+                self.next_record_time += self.record_interval
 
     def step(self):
-        self.strategy_step()
-        self.order_flow_step()
+        orderflow_events = self.order_flow_step()
+        self.strategy_step(orderflow_events)
 
     def record_metrics(self, events):
         t = self.current_time
