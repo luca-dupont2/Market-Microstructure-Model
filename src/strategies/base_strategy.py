@@ -109,12 +109,10 @@ class BaseStrategy:
             if order.type == OrderType.LIMIT:
                 total_cost = order.size * order.get_price()
                 if self.cash < total_cost:
-                    print("Insufficient cash for buy limit order.")
                     return False
             elif order.type == OrderType.MARKET:
                 total_cost = order.size * best_ask_price
                 if self.cash < total_cost:
-                    print("Insufficient cash for buy market order.")
                     return False
 
         return True
