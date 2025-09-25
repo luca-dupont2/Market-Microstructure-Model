@@ -77,6 +77,15 @@ class BaseStrategy:
             parent_id=parent_id,
         )
 
+    def _create_cancel_order(self, order_id):
+        return Order(
+            type=OrderType.CANCEL,
+            side=OrderSide.BUY,  # side is irrelevant for cancel orders
+            size=0,
+            price=None,
+            id=order_id,
+        )
+
     def schedule_order(self, schedule_time, volume, side, *args, **kwargs):
         self.schedule += self.execution_strategy.schedule_order(
             schedule_time, volume, side, *args, **kwargs
@@ -106,10 +115,6 @@ class BaseStrategy:
                 if self.cash < total_cost:
                     print("Insufficient cash for buy market order.")
                     return False
-        elif order.side == OrderSide.SELL:
-            if order.size > self.inventory:
-                print("Insufficient inventory for sell limit order.")
-                return False
 
         return True
 
@@ -146,11 +151,11 @@ class BaseStrategy:
 
             self.schedule_order(time, volume, OrderSide.SELL)
 
-    def step(self, time, book, history):
+    def step(self, time, book, history) -> list[Order]:
         self.process_signal(time, book, history)
 
         if not self.schedule:
-            return None
+            return []
 
         if time >= self.schedule[0][0]:
             _, volume, side, parent_id = self.schedule.pop(0)
@@ -158,7 +163,7 @@ class BaseStrategy:
             order = self._create_market_order(volume, side, parent_id)
 
             if not self.validate_order(order, book):
-                return None
+                return []
 
             if parent_id not in self.parent_order_dict:
                 current_best = (
@@ -166,9 +171,9 @@ class BaseStrategy:
                 )
                 self.parent_order_dict[parent_id] = current_best.get_price()
 
-            return order
+            return [order]
 
-        return None
+        return []
 
     def update(self, time, events):
         for event in events:
