@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib.widgets as widgets
 import numpy as np
+from datetime import datetime
 
 
-def plot_price(book_metrics_df, title="Price Evolution"):
+def plot_price(book_metrics_df, title="Price Evolution", save=False):
     fig, ax = plt.subplots(figsize=(12, 6))
 
     line_colors = ["blue", "green", "red"]
@@ -56,8 +57,14 @@ def plot_price(book_metrics_df, title="Price Evolution"):
     check.on_clicked(toggle)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/price_evolution_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved price evolution plot as {filename}")
 
-def plot_spread(book_metrics_df, title="Average Spread (20 Buckets)"):
+
+def plot_spread(book_metrics_df, title="Average Spread (20 Buckets)", save=False):
     fig, ax = plt.subplots(figsize=(10, 5))
 
     # Bin into 20 buckets
@@ -80,8 +87,14 @@ def plot_spread(book_metrics_df, title="Average Spread (20 Buckets)"):
     ax.grid(True, which="both", axis="y", alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/average_spread_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved average spread plot as {filename}")
 
-def plot_volume(book_metrics_df, title="Average Volume (20 Buckets)"):
+
+def plot_volume(book_metrics_df, title="Average Volume (20 Buckets)", save=False):
     fig, ax = plt.subplots(figsize=(10, 5))
 
     # Bin into 20 buckets
@@ -104,8 +117,14 @@ def plot_volume(book_metrics_df, title="Average Volume (20 Buckets)"):
     ax.grid(True, which="both", axis="y", alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/average_volume_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved average volume plot as {filename}")
 
-def plot_depth(book_metrics_df, title="Order Book Depth"):
+
+def plot_depth(book_metrics_df, title="Order Book Depth", save=False):
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.plot(
         book_metrics_df["time"],
@@ -127,9 +146,18 @@ def plot_depth(book_metrics_df, title="Order Book Depth"):
     ax.grid(True, alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/order_book_depth_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved order book depth plot as {filename}")
+
 
 def plot_order_size_and_price_hists(
-    snapshot_df, size_title="Order Size Histogram", price_title="Order Price Histogram"
+    snapshot_df,
+    size_title="Order Size Histogram",
+    price_title="Order Price Histogram",
+    save=False,
 ):
     """Plot side-by-side histograms for order sizes and order price levels from a snapshot."""
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
@@ -151,8 +179,14 @@ def plot_order_size_and_price_hists(
     plt.tight_layout()
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/order_size_price_histograms_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved order size and price histograms as {filename}")
 
-def plot_book_drawdown(book_metrics_df, title="Mid Price Drawdown Curve"):
+
+def plot_book_drawdown(book_metrics_df, title="Mid Price Drawdown Curve", save=False):
     fig, ax = plt.subplots(figsize=(12, 6))
 
     mid_prices = book_metrics_df["mid_price"].to_numpy()
@@ -184,20 +218,28 @@ def plot_book_drawdown(book_metrics_df, title="Mid Price Drawdown Curve"):
     ax.grid(True, alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/mid_price_drawdown_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved mid price drawdown plot as {filename}")
 
-def plot_book_all(book_metrics_df, snapshot_df=None):
+
+def plot_book_all(book_metrics_df, snapshot_df=None, save=False):
     """Convenience function to plot multiple key metrics."""
-    plot_price(book_metrics_df)
-    plot_book_drawdown(book_metrics_df)
-    plot_spread(book_metrics_df)
-    plot_volume(book_metrics_df)
-    plot_depth(book_metrics_df)
+    plot_price(book_metrics_df, save=save)
+    plot_book_drawdown(book_metrics_df, save=save)
+    plot_spread(book_metrics_df, save=save)
+    plot_volume(book_metrics_df, save=save)
+    plot_depth(book_metrics_df, save=save)
 
     if snapshot_df is not None:
-        plot_order_size_and_price_hists(snapshot_df)
+        plot_order_size_and_price_hists(snapshot_df, save=save)
 
 
-def plot_equity_curve(strategy_metrics_df, title="Equity Curve", strategy_id=None):
+def plot_equity_curve(
+    strategy_metrics_df, title="Equity Curve", strategy_id=None, save=False
+):
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -215,8 +257,14 @@ def plot_equity_curve(strategy_metrics_df, title="Equity Curve", strategy_id=Non
     ax.legend()
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/equity_curve_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved equity curve plot as {filename}")
 
-def plot_pnl(strategy_metrics_df, title="PnL Breakdown", strategy_id=None):
+
+def plot_pnl(strategy_metrics_df, title="PnL Breakdown", strategy_id=None, save=False):
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -247,9 +295,18 @@ def plot_pnl(strategy_metrics_df, title="PnL Breakdown", strategy_id=None):
     ax.legend()
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/pnl_breakdown_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved PnL breakdown plot as {filename}")
+
 
 def plot_inventory_and_cash(
-    strategy_metrics_df, title="Cash & Inventory Evolution", strategy_id=None
+    strategy_metrics_df,
+    title="Cash & Inventory Evolution",
+    strategy_id=None,
+    save=False,
 ):
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
@@ -280,9 +337,15 @@ def plot_inventory_and_cash(
     ax1.grid(True, alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/cash_inventory_evolution_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved cash and inventory evolution plot as {filename}")
+
 
 def plot_strategy_drawdown(
-    strategy_metrics_df, title="Drawdown Curve", strategy_id=None
+    strategy_metrics_df, title="Drawdown Curve", strategy_id=None, save=False
 ):
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
@@ -318,9 +381,15 @@ def plot_strategy_drawdown(
     ax.grid(True, alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/strategy_drawdown_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved strategy drawdown plot as {filename}")
+
 
 def plot_return_histogram(
-    strategy_metrics_df, title="Distribution of Returns", strategy_id=None
+    strategy_metrics_df, title="Distribution of Returns", strategy_id=None, save=False
 ):
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
@@ -339,17 +408,25 @@ def plot_return_histogram(
     ax.grid(True, alpha=0.3)
     plt.show()
 
+    if save:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"images/return_histogram_{timestamp}.png"
+        fig.savefig(filename)
+        print(f"Saved return histogram plot as {filename}")
 
-def plot_strategy_all(strategy_metrics_df, strategy_id=None):
+
+def plot_strategy_all(strategy_metrics_df, strategy_id=None, save=False):
     """Convenience function to plot strategy performance metrics."""
-    plot_equity_curve(strategy_metrics_df, strategy_id=strategy_id)
-    plot_pnl(strategy_metrics_df, strategy_id=strategy_id)
-    plot_inventory_and_cash(strategy_metrics_df, strategy_id=strategy_id)
-    plot_strategy_drawdown(strategy_metrics_df, strategy_id=strategy_id)
-    plot_return_histogram(strategy_metrics_df, strategy_id=strategy_id)
+    plot_equity_curve(strategy_metrics_df, strategy_id=strategy_id, save=save)
+    plot_pnl(strategy_metrics_df, strategy_id=strategy_id, save=save)
+    plot_inventory_and_cash(strategy_metrics_df, strategy_id=strategy_id, save=save)
+    plot_strategy_drawdown(strategy_metrics_df, strategy_id=strategy_id, save=save)
+    plot_return_histogram(strategy_metrics_df, strategy_id=strategy_id, save=save)
 
 
-def plot_all(book_metrics_df, strategy_metrics_df, strategy_id=None, snapshot_df=None):
+def plot_all(
+    book_metrics_df, strategy_metrics_df, strategy_id=None, snapshot_df=None, save=False
+):
     """Convenience function to plot both book and strategy metrics."""
-    plot_book_all(book_metrics_df, snapshot_df)
-    plot_strategy_all(strategy_metrics_df, strategy_id=strategy_id)
+    plot_book_all(book_metrics_df, snapshot_df, save=save)
+    plot_strategy_all(strategy_metrics_df, strategy_id=strategy_id, save=save)
