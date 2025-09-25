@@ -6,7 +6,7 @@ CONFIG = {
         "dt": 0.5,  # time step for simulation (s)
         "tick_size": 0.01,  # minimum price increment ($)
         "initial_price": 200,  # initial mid price ($)
-        "record_interval": 60,  # interval for recording order book state (s)
+        "record_interval": 240,  # interval for recording order book state (s)
         "random_seed": 42,  # random seed for reproducibility (int or None)
         "log_file": False,  # save logs to file (True/False)
         "log_filename": None,  # filname for logs if log_file is True. Else filename is timestamped
@@ -15,10 +15,10 @@ CONFIG = {
     },
     "ORDERFLOW_PARAMS": {
         "order_bernoulli": {  # Probability of each order type. Selected event via bernoulli trial. Must sum to 1.
-            "limit_buy": 0.3 + ORDER_DRIFT,
-            "limit_sell": 0.3 - ORDER_DRIFT,
-            "market_buy": 0.175 + ORDER_DRIFT,
-            "market_sell": 0.175 - ORDER_DRIFT,
+            "limit_buy": 0.325 + ORDER_DRIFT,
+            "limit_sell": 0.325 - ORDER_DRIFT,
+            "market_buy": 0.15 + ORDER_DRIFT,
+            "market_sell": 0.15 - ORDER_DRIFT,
             "cancel": 0.05,
         },
         "size_distribution": {  # Log-normal distribution
