@@ -132,8 +132,6 @@ class Simulator:
         if self.current_time >= self.next_record_time:
             events = self.order_book.flush_event_queue()
             self.record_metrics(events)
-            print(f"t={self.current_time:.2f}s", end="\r")
-
 
             for agent in self.agents:
                 agent.record_metrics(self.current_time, self.order_book)
@@ -182,7 +180,8 @@ class Simulator:
 
         while self.current_time < T_sim:
             self.step()
-
+            
+            print(f"t={self.current_time:.2f}s", end="\r")
             self.current_time += dt
 
         self.simlogger.logger.info("Simulation completed.")
