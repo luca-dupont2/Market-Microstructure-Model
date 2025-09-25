@@ -1,14 +1,29 @@
-from ..utils import rng, distributions
+from ..utils import RNG, distributions
 from numpy import clip
 from ..engine.order import OrderSide, OrderType, Order
 
 
-def round_to_tick(price, tick_size):
+def round_to_tick(price: float, tick_size: float) -> float:
+    """Round a price to the nearest tick size.
+
+    Args:
+        price (float): The price to round.
+        tick_size (float): The tick size to round to.
+
+    Returns:
+        float: The rounded price.
+    """
     return round(price / tick_size) * tick_size
 
 
 class Generator:
-    def __init__(self, config, rng):
+    def __init__(self, config: dict, rng: RNG):
+        """Initialize the order flow generator.
+
+        Args:
+            config (dict): Configuration parameters for the generator.
+            rng (RNG): Random number generator.
+        """
         seed = config["SIM_PARAMS"]["random_seed"]
         self.rng = rng
 
@@ -63,10 +78,23 @@ class Generator:
         )
 
     def gen_size(self):
+        """Generate a random order size.
+
+        Returns:
+            int: Rounded order size clipped to min and max size.
+        """
         rounded_size = int(self.log_normal.sample())
         return clip(rounded_size, self.min_size, self.max_size)
 
-    def gen_price(self, best_price):
+    def gen_price(self, best_price: float) -> float:
+        """Generate a random order price based on the best price.
+
+        Args:
+            best_price (float): The best price on the relevant side of the book.
+
+        Returns:
+            float: The generated price.
+        """
         direction = self.rng.choice([1, -1])
         if self.rng.bernoulli(self.pointmass):
             price_change = self.geometric.sample()
@@ -81,7 +109,23 @@ class Generator:
 
         return max(price, 0)
 
-    def gen_order(self, ask_price, bid_price):
+    def gen_order(self, ask_price: float | None, bid_price: float | None) -> Order:
+        """Generate a random order based on the current market conditions.
+
+        Args:
+            ask_price (float | None): The current ask price.
+            bid_price (float | None): The current bid price.
+
+        Returns:
+            Order: The generated order.
+        """
+        event_choice = self.rng.choice(
+            list(self.order_probs.keys()), p=list(self.order_probs.values())
+        )
+
+        side = self.side_map[event_choice]
+        type = self.type_map[event_choice]
+
         event_choice = self.rng.choice(
             list(self.order_probs.keys()), p=list(self.order_probs.values())
         )
@@ -90,7 +134,7 @@ class Generator:
         type = self.type_map[event_choice]
 
         if type == OrderType.CANCEL:
-            return Order(side=side, price=None, size=None, type=type)
+            return Order(side=side, price=None, size=0, type=type)
 
         size = self.gen_size()
 

@@ -1,14 +1,24 @@
 from .book import LimitOrderBook, Order, OrderSide, OrderType
 from .events import Event
-from ..utils import SimLogger
-from ..orderflow.generator import Generator
+from ..utils import SimLogger, RNG
+from ..orderflow import Generator
+from ..strategies import BaseStrategy
 from .book_metrics import Metrics
 from datetime import datetime
 from pandas import DataFrame
 
 
 class Simulator:
-    def __init__(self, config, rng, agents=[]):
+    """Simulates the trading environment."""
+
+    def __init__(self, config: dict, rng: RNG, agents: list[BaseStrategy] = []):
+        """Initialize the simulator.
+
+        Args:
+            config (dict): Configuration parameters for the simulator.
+            rng (RNG): Random number generator.
+            agents (list[BaseStrategy], optional): List of agents participating in the simulation. Defaults to [].
+        """
         self.order_book = LimitOrderBook(config)
         self.config = config
         self.agents = agents
@@ -30,6 +40,11 @@ class Simulator:
         self.generator = Generator(config, rng)
 
     def populate_initial_book_from_df(self, df: DataFrame):
+        """Populate the initial order book from a DataFrame.
+
+        Args:
+            df (DataFrame): DataFrame containing initial orders with columns 'side', 'price', and 'size'.
+        """
         for _, row in df.iterrows():
             order = Order(
                 side=OrderSide.BUY if row["side"].item() == "buy" else OrderSide.SELL,
@@ -44,7 +59,13 @@ class Simulator:
             f"Populated initial book with {len(df)} limit orders from dataframe."
         )
 
-    def populate_initial_book_rand(self, n_levels=16, orders_per_level=3):
+    def populate_initial_book_rand(self, n_levels: int = 16, orders_per_level: int = 3):
+        """Populate the initial order book with random limit orders.
+
+        Args:
+            n_levels (int, optional): Number of price levels to create. Defaults to 16.
+            orders_per_level (int, optional): Number of orders per price level. Defaults to 3.
+        """
         initial_price = self.config["SIM_PARAMS"]["initial_price"]
 
         for level in range(1, n_levels + 1):
@@ -77,6 +98,11 @@ class Simulator:
         )
 
     def order_flow_step(self) -> list[Event]:
+        """Simulate a step in the order flow.
+
+        Returns:
+            list[Event]: List of events generated during the order flow step.
+        """
         best_ask = self.order_book.best_ask().get_price()
         best_bid = self.order_book.best_bid().get_price()
 
@@ -108,7 +134,12 @@ class Simulator:
 
         return events
 
-    def strategy_step(self, orderflow_events=[]):
+    def strategy_step(self, orderflow_events: list[Event] = []):
+        """Process a step in the trading strategy.
+
+        Args:
+            orderflow_events (list[Event], optional): List of order flow events from the previous step. Defaults to [].
+        """
         next_record = False
         for agent in self.agents:
             cancels, orders = agent.step(
@@ -126,6 +157,7 @@ class Simulator:
                 agent.update(self.current_time, events + orderflow_events)
 
     def step(self):
+        """Process a step in the simulation."""
         orderflow_events = self.order_flow_step()
         self.strategy_step(orderflow_events)
 
@@ -138,11 +170,21 @@ class Simulator:
 
             self.next_record_time += self.record_interval
 
-    def record_metrics(self, events):
+    def record_metrics(self, events: list[Event]):
+        """Record metrics for the current simulation step.
+
+        Args:
+            events (list[Event]): List of events generated during the simulation step.
+        """
         t = self.current_time
         self.metrics.record(t, self.order_book, events)
 
-    def save_metrics(self, filename=None):
+    def save_metrics(self, filename: str | None = None):
+        """Save the simulation metrics to a CSV file.
+
+        Args:
+            filename (str | None, optional): The name of the file to save the metrics to. Defaults to None.
+        """
         df = self.metrics.get_dataframe()
         if df is None:
             print("No metrics to save.")
@@ -157,7 +199,12 @@ class Simulator:
         df.to_csv(filename, index=False)
         print(f"Metrics saved in {filename}")
 
-    def save_order_book(self, filename=None):
+    def save_order_book(self, filename: str | None = None):
+        """Save the order book snapshot to a CSV file.
+
+        Args:
+            filename (str | None, optional): The name of the file to save the order book to. Defaults to None.
+        """
         df = self.order_book.get_dataframe()
         if df is None:
             print("No order book data to save.")
@@ -173,6 +220,7 @@ class Simulator:
         print(f"Order book snapshot saved in {filename}")
 
     def run(self):
+        """Run the simulation."""
         T_sim = self.config["SIM_PARAMS"]["horizon"]
         dt = self.config["SIM_PARAMS"]["dt"]
 
@@ -180,13 +228,18 @@ class Simulator:
 
         while self.current_time < T_sim:
             self.step()
-            
+
             print(f"t={self.current_time:.2f}s", end="\r")
             self.current_time += dt
 
         self.simlogger.logger.info("Simulation completed.")
 
-    def reset(self, agents):
+    def reset(self, agents: list[BaseStrategy] = []):
+        """Reset the simulation environment.
+
+        Args:
+            agents (list[BaseStrategy], optional): List of agents to reset. Defaults to [].
+        """
         self.order_book = LimitOrderBook(self.config)
         self.current_time = 0.0
         self.next_record_time = 0.0
