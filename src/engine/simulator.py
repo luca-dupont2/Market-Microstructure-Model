@@ -82,12 +82,6 @@ class Simulator:
 
         order = self.generator.gen_order(best_ask, best_bid)
 
-        if self.current_time >= self.next_record_time:
-            events = self.order_book.flush_event_queue()
-            print(f"t={self.current_time:.2f}s", end="\r")
-
-            self.record_metrics(events)
-
         # Specific handling for CANCEL orders (assign id to cancel)
         if order.type == OrderType.CANCEL:
             all_ids = self.order_book.get_all_order_ids()
@@ -115,6 +109,7 @@ class Simulator:
         return events
 
     def strategy_step(self, orderflow_events=[]):
+        next_record = False
         for agent in self.agents:
             cancels, orders = agent.step(
                 self.current_time, self.order_book, self.metrics.data
@@ -130,13 +125,20 @@ class Simulator:
 
                 agent.update(self.current_time, events + orderflow_events)
 
-            if self.current_time >= self.next_record_time:
-                agent.record_metrics(self.current_time, self.order_book)
-                self.next_record_time += self.record_interval
-
     def step(self):
         orderflow_events = self.order_flow_step()
         self.strategy_step(orderflow_events)
+
+        if self.current_time >= self.next_record_time:
+            events = self.order_book.flush_event_queue()
+            self.record_metrics(events)
+            print(f"t={self.current_time:.2f}s", end="\r")
+
+
+            for agent in self.agents:
+                agent.record_metrics(self.current_time, self.order_book)
+
+            self.next_record_time += self.record_interval
 
     def record_metrics(self, events):
         t = self.current_time
@@ -179,7 +181,6 @@ class Simulator:
         self.simlogger.logger.info("Starting simulation...")
 
         while self.current_time < T_sim:
-
             self.step()
 
             self.current_time += dt
