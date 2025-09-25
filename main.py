@@ -1,7 +1,7 @@
-from src.engine import Simulator, OrderSide
+from src.engine import Simulator
 from src.config import CONFIG
 from src.utils import plotting, RNG
-from src.strategies import ManualTaker, TWAPExecution
+from src.strategies import BlockExecution, SymmetricMaker
 
 seed = CONFIG["SIM_PARAMS"]["random_seed"]
 intervals = CONFIG["STRATEGY_PARAMS"]["taker"]["twap"]["intervals"]
@@ -9,29 +9,34 @@ duration = CONFIG["STRATEGY_PARAMS"]["taker"]["twap"]["duration"]
 
 rng = RNG(seed)
 
-execution_strategy = TWAPExecution(rng, intervals=intervals, duration=duration)
+execution_strategy = BlockExecution(rng)
 
-manual_taker = ManualTaker(
-    initial_cash=100_000,
-    initial_inventory=0,
-    id="Manual_Taker_1",
+maker = SymmetricMaker(
     execution_strategy=execution_strategy,
+    quote_size=10,
+    max_inventory=100,
+    quote_update_interval=3,
+    record_metrics=True,
+    id="Symmetric_Maker_1",
+    initial_cash=10_000,
+    initial_inventory=0,
+    config=CONFIG,
 )
 
-manual_taker.schedule_order(7200, 300, OrderSide.BUY)
-
-simulator = Simulator(CONFIG, rng, agents=[manual_taker])
-simulator.populate_initial_book_rand(n_levels=25, orders_per_level=5)
+simulator = Simulator(CONFIG, rng, agents=[maker])
+simulator.populate_initial_book_rand(n_levels=20, orders_per_level=50)
 
 simulator.run()
 
-metrics = simulator.metrics.get_dataframe()
+book_metrics = simulator.metrics.get_dataframe()
 order_book_snapshot = simulator.order_book.get_dataframe()
 
 simulator.save_order_book()
 simulator.save_metrics()
-
-manual_taker.print_summary(simulator.order_book)
 simulator.metrics.print_summary()
 
-plotting.plot_all(metrics, order_book_snapshot)
+if maker.metrics:
+    maker.metrics.print_summary()
+    maker_metrics = maker.metrics.get_dataframe()
+
+    plotting.plot_all(book_metrics, maker_metrics, maker.id, order_book_snapshot, save=True)
