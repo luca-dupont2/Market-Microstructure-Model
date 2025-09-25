@@ -7,7 +7,7 @@ CONFIG = {
         "tick_size": 0.01,  # minimum price increment ($)
         "initial_price": 200,  # initial mid price ($)
         "record_interval": 60,  # interval for recording order book state (s)
-        "random_seed": 41,  # random seed for reproducibility (int or None)
+        "random_seed": 42,  # random seed for reproducibility (int or None)
         "log_file": False,  # save logs to file (True/False)
         "log_filename": None,  # filname for logs if log_file is True. Else filename is timestamped
         "log_level": "DEBUG",  # Minimum log level to record to file
