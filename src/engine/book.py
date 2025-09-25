@@ -225,10 +225,10 @@ class LimitOrderBook:
                 trade_event = create_trade_event(
                     best.get_price(),
                     trade,
-                    order,
-                    best,
-                    order.timestamp,
-                    order.parent_id,
+                    buy_order=order,
+                    sell_order=best,
+                    timestamp=order.timestamp,
+                    parent_order_id=order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -249,10 +249,10 @@ class LimitOrderBook:
                 trade_event = create_trade_event(
                     best.get_price(),
                     trade,
-                    best,
-                    order,
-                    order.timestamp,
-                    order.parent_id,
+                    buy_order=best,
+                    sell_order=order,
+                    timestamp=order.timestamp,
+                    parent_order_id=order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -305,10 +305,10 @@ class LimitOrderBook:
                 trade_event = create_trade_event(
                     best.get_price(),
                     trade,
-                    best,
-                    order,
-                    order.timestamp,
-                    order.parent_id,
+                    buy_order=order,
+                    sell_order=best,
+                    timestamp=order.timestamp,
+                    parent_order_id=order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -332,10 +332,10 @@ class LimitOrderBook:
                 trade_event = create_trade_event(
                     best.get_price(),
                     trade,
-                    best,
-                    order,
-                    order.timestamp,
-                    order.parent_id,
+                    buy_order=best,
+                    sell_order=order,
+                    timestamp=order.timestamp,
+                    parent_order_id=order.parent_id,
                 )
 
                 trade_events.append(trade_event)
@@ -349,10 +349,11 @@ class LimitOrderBook:
 
         if order.size > 0:
             self._add_order(order)
+            trade_events.append(create_new_order_event(order, order.timestamp))
 
         return trade_events
 
-    def _cancel_order(self, order_id: int | str) -> Event | None:
+    def _cancel_order(self, order_id: int | str) -> list[Event]:
         """
         Cancel an order by its ID and publish a cancel event.
 
@@ -374,7 +375,7 @@ class LimitOrderBook:
 
                 cancel_event = create_cancel_order_event(order, datetime.now())
                 self.events.publish(cancel_event)
-                return cancel_event
+                return [cancel_event]
 
         for i, order in enumerate(self.bid_orders):
             if order.id == order_id:
@@ -385,11 +386,11 @@ class LimitOrderBook:
                 cancel_event = create_cancel_order_event(order, datetime.now())
                 self.events.publish(cancel_event)
 
-                return cancel_event
+                return [cancel_event]
 
-        return None
+        return []
 
-    def process_order(self, order: Order) -> Event | list[Event] | None:
+    def process_order(self, order: Order) -> list[Event]:
         """
         Process an incoming order: cancel, market, or limit.
 
@@ -414,6 +415,8 @@ class LimitOrderBook:
         if order.type == OrderType.LIMIT:
             trade_events = self._match_limit_order(order)
             return trade_events
+
+        return []
 
     def get_all_order_ids(self) -> list[int | str]:
         """
