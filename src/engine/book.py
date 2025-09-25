@@ -133,7 +133,7 @@ class LimitOrderBook:
         best_ask = self.best_ask().get_price()
 
         if best_bid == 0 and best_ask == 0:
-            return 0.0
+            return float("inf")  # Infinite spread if no bids/asks exist
         elif best_bid == 0 or best_ask == 0:
             return float("inf")  # Infinite spread if one side is missing
         else:
