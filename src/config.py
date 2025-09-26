@@ -38,7 +38,7 @@ CONFIG = {
         "market_maker": {
             "inventory_limit": 100,  # max inventory before stopping quoting
             "quote_size": 10,  # size of each quote
-            "quote_update_interval": 3,  # in multiples of dt
+            "quote_update_interval": 5,  # in multiples of dt
         },
         "taker": {
             "twap": {  # Time-Weighted Average Price strategy
