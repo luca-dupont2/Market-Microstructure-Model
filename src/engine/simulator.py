@@ -229,7 +229,8 @@ class Simulator:
         while self.current_time < T_sim:
             self.step()
 
-            print(f"t={self.current_time:.2f}s", end="\r")
+            if self.current_time % 10 < dt:
+                print(f"t={self.current_time:.2f}s", end="\r")
             self.current_time += dt
 
         self.simlogger.logger.info("Simulation completed.")

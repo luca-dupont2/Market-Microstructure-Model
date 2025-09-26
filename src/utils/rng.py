@@ -96,24 +96,26 @@ class RNG:
         probabilities = weights / weights.sum()
         return probabilities
 
-    def discrete_zipf(self, probabilities: np.ndarray, ranks: np.ndarray) -> int:
+    def discrete_zipf(
+        self, probabilities: np.ndarray | list, ranks: np.ndarray | list
+    ) -> int:
         """Draw from a discrete Zipf distribution.
 
         Args:
-            probabilities (np.ndarray): The probabilities for each rank.
-            ranks (np.ndarray): The ranks to sample from.
+            probabilities (np.ndarray | list): The probabilities for each rank.
+            ranks (np.ndarray | list): The ranks to sample from.
 
         Returns:
             int: A random rank sampled from the distribution.
         """
         return self._np_rng.choice(ranks, p=probabilities)
 
-    def choice(self, seq: np.ndarray, p: np.ndarray | None = None) -> int:
+    def choice(self, seq: np.ndarray | list, p: np.ndarray | list | None = None) -> int:
         """Pick a random element from a list/array.
 
         Args:
-            seq (np.ndarray): The sequence to sample from.
-            p (np.ndarray | None, optional): The probabilities for each element. Defaults to None.
+            seq (np.ndarray | list): The sequence to sample from.
+            p (np.ndarray | list | None, optional): The probabilities for each element. Defaults to None.
 
         Returns:
             int: The index of the selected element.
