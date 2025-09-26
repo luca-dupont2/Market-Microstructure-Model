@@ -1,6 +1,5 @@
 from datetime import datetime
 from ..engine import (
-    EventType,
     TradeEvent,
     Event,
     Order,
@@ -8,7 +7,6 @@ from ..engine import (
     OrderType,
     LimitOrderBook,
 )
-from .strategy_metrics import StrategyMetrics
 from .execution import ExecutionStrategy
 from .signal import BaseSignal
 import uuid
@@ -46,6 +44,8 @@ class BaseStrategy:
             initial_cash (float, optional): The initial cash balance for the strategy. Defaults to 10000.
             initial_inventory (int, optional): The initial inventory for the strategy. Defaults to 0.
         """
+        from .strategy_metrics import StrategyMetrics
+
         self.id = id or __class__.__name__
         self.initial_cash = initial_cash
         self.cash = initial_cash
