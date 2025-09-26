@@ -1,8 +1,10 @@
 import math
 import uuid
 from .base_strategy import BaseStrategy
+from .execution import ExecutionStrategy
 from ..engine.order import Order, OrderSide
-from ..engine.events import EventType
+from ..engine.book import LimitOrderBook
+from ..engine.events import EventType, TradeEvent, Event
 from ..orderflow.generator import round_to_tick
 
 
@@ -10,15 +12,23 @@ from ..orderflow.generator import round_to_tick
 class SymmetricMaker(BaseStrategy):
     def __init__(
         self,
-        execution_strategy,
+        execution_strategy: ExecutionStrategy,
         config: dict,
         quote_size: int = 10,
         max_inventory: int = 100,
         quote_update_interval: int = 10,  # in multiples of dt
-        *args,
         **kwargs,
     ):
-        super().__init__(execution_strategy, *args, **kwargs)
+        """Initialize the symmetric market maker strategy.
+
+        Args:
+            execution_strategy (ExecutionStrategy): The execution strategy to use.
+            config (dict): The configuration dictionary.
+            quote_size (int, optional): The size of the quotes. Defaults to 10.
+            max_inventory (int, optional): The maximum inventory level. Defaults to 100.
+            quote_update_interval (int, optional): The quote update interval. Defaults to 10.
+        """
+        super().__init__(execution_strategy, **kwargs)
         self.quote_size = quote_size
         self.max_inventory = max_inventory
 
@@ -31,7 +41,19 @@ class SymmetricMaker(BaseStrategy):
         # Next time to refresh quotes
         self.next_quote_time = 0.0
 
-    def step(self, time, book, history) -> tuple[list[Order], list[Order]]:
+    def step(
+        self, time: float, book: LimitOrderBook, history: dict
+    ) -> tuple[list[Order], list[Order]]:
+        """Process a trading step.
+
+        Args:
+            time (float): The current simulation time.
+            book (LimitOrderBook): The current state of the limit order book.
+            history (dict): The historical data for the simulation. From metrics.data
+
+        Returns:
+            tuple[list[Order], list[Order]]: A tuple containing the list of orders to place and the list of orders to cancel.
+        """
         orders = []
         cancels = []
 
@@ -92,20 +114,49 @@ class SymmetricMaker(BaseStrategy):
 
         return cancels, orders
 
-    def on_trade(self, trade, time):  # No slippage handling for limit orders
+    def on_trade(
+        self, trade: TradeEvent, time: float
+    ):  # No slippage handling for limit orders
+        """Handle a trade event.
+
+        Args:
+            trade (TradeEvent): The trade event to handle.
+            time (float): The time at which the trade occurred.
+        """
         self.trades.append((time, trade))
 
-    def update(self, time, events):
-        id_len = len(self.id)
+    def update(self, time: float, events: list[Event]):
+        """Update the strategy state based on the current time and events.
+
+        Args:
+            time (float): The current simulation time.
+            events (list[Event]): The list of events to process.
+        """
         if not events:
             return
         for event in events:
-            if event.type != EventType.TRADE:
+            if not isinstance(event, TradeEvent):
                 continue
-            if (
-                type(event.buy_order_id) == str
-                and event.buy_order_id[:id_len] == self.id
+
+            # Type checking for IDs to avoid mismatches
+            if type(self.id) != type(event.buy_order_id) and type(self.id) != type(
+                event.sell_order_id
             ):
+                continue  # ID types do not match
+
+            buy_compare_id = None
+            sell_compare_id = None
+            if type(self.id) == str and type(event.buy_order_id) == str:
+                buy_compare_id = event.buy_order_id[
+                    : len(self.id)
+                ]  # Truncate id to strategy name for comparison
+            elif type(self.id) == str and type(event.sell_order_id) == str:
+                sell_compare_id = event.sell_order_id[: len(self.id)]
+            else:
+                buy_compare_id = event.buy_order_id
+                sell_compare_id = event.sell_order_id
+
+            if buy_compare_id == self.id:
                 # Bought
                 self.inventory += event.size
                 self.cash -= event.size * event.price
@@ -113,10 +164,7 @@ class SymmetricMaker(BaseStrategy):
                     q for q in self.quotes["bid"] if q.id != event.buy_order_id
                 ]
                 self.on_trade(event, time)
-            elif (
-                type(event.sell_order_id) == str
-                and event.sell_order_id[:id_len] == self.id
-            ):
+            elif sell_compare_id == self.id:
                 # Sold
                 self.inventory -= event.size
                 self.cash += event.size * event.price
@@ -126,11 +174,13 @@ class SymmetricMaker(BaseStrategy):
                 self.on_trade(event, time)
 
 
+#! TODO: Implement Avellaneda-Stoikov model
+#! CLASS NOT IMPLEMENTED YET
 # Market making strategy with Avellaneda-Stoikov pricing model
-class InventoryMaker(SymmetricMaker):
+class InventoryMaker(SymmetricMaker): 
     def __init__(
         self,
-        execution_strategy,
+        execution_strategy: ExecutionStrategy,
         config: dict,
         base_spread: float,  # in price units (e.g. $0.05)
         look_back: int = 10,  # for volatility estimation
@@ -138,10 +188,19 @@ class InventoryMaker(SymmetricMaker):
         max_inventory: int = 100,
         tick_size: float = 0.01,
         quote_update_interval: float = 5.0,
-        *args,
         **kwargs,
     ):
-        super().__init__(execution_strategy, *args, **kwargs)
+        """Initialize the InventoryMaker strategy.
+
+        Args:
+            execution_strategy (ExecutionStrategy): The execution strategy to use.
+            config (dict): The configuration dictionary.
+            base_spread (float): The base spread for quotes.
+            max_inventory (int, optional): The maximum inventory level. Defaults to 100.
+            tick_size (float, optional): The tick size for price movements. Defaults to 0.01.
+            quote_update_interval (float, optional): The interval for updating quotes. Defaults to 5.0.
+        """
+        super().__init__(execution_strategy, **kwargs)
         self.base_spread = base_spread
         self.quote_size = quote_size
         self.max_inventory = max_inventory
