@@ -1,10 +1,20 @@
 import matplotlib.pyplot as plt
-import matplotlib.widgets as widgets
+import pandas as pd
+from matplotlib import widgets
 import numpy as np
 from datetime import datetime
 
 
-def plot_price(book_metrics_df, title="Price Evolution", save=False):
+def plot_price(
+    book_metrics_df: pd.DataFrame, title: str = "Price Evolution", save: bool = False
+):
+    """Plot the price evolution of the order book.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the order book metrics.
+        title (str, optional): Title of the plot. Defaults to "Price Evolution".
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     fig, ax = plt.subplots(figsize=(12, 6))
 
     line_colors = ["blue", "green", "red"]
@@ -64,7 +74,18 @@ def plot_price(book_metrics_df, title="Price Evolution", save=False):
         print(f"Saved price evolution plot as {filename}")
 
 
-def plot_spread(book_metrics_df, title="Average Spread (20 Buckets)", save=False):
+def plot_spread(
+    book_metrics_df: pd.DataFrame,
+    title: str = "Average Spread (20 Buckets)",
+    save: bool = False,
+):
+    """Plot the average spread of the order book.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the order book metrics.
+        title (str, optional): Title of the plot. Defaults to "Average Spread (20 Buckets)".
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     fig, ax = plt.subplots(figsize=(10, 5))
 
     # Bin into 20 buckets
@@ -94,7 +115,18 @@ def plot_spread(book_metrics_df, title="Average Spread (20 Buckets)", save=False
         print(f"Saved average spread plot as {filename}")
 
 
-def plot_volume(book_metrics_df, title="Average Volume (20 Buckets)", save=False):
+def plot_volume(
+    book_metrics_df: pd.DataFrame,
+    title: str = "Average Volume (20 Buckets)",
+    save: bool = False,
+):
+    """Plot the average volume of the order book.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the order book metrics.
+        title (str, optional): Title of the plot. Defaults to "Average Volume (20 Buckets)".
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     fig, ax = plt.subplots(figsize=(10, 5))
 
     # Bin into 20 buckets
@@ -124,7 +156,18 @@ def plot_volume(book_metrics_df, title="Average Volume (20 Buckets)", save=False
         print(f"Saved average volume plot as {filename}")
 
 
-def plot_depth(book_metrics_df, title="Order Book Depth", save=False):
+def plot_depth(
+    book_metrics_df: pd.DataFrame,
+    title: str = "Order Book Depth",
+    save: bool = False,
+):
+    """Plot the depth of the order book.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the order book metrics.
+        title (str, optional): Title of the plot. Defaults to "Order Book Depth".
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.plot(
         book_metrics_df["time"],
@@ -154,12 +197,19 @@ def plot_depth(book_metrics_df, title="Order Book Depth", save=False):
 
 
 def plot_order_size_and_price_hists(
-    snapshot_df,
-    size_title="Order Size Histogram",
-    price_title="Order Price Histogram",
-    save=False,
+    snapshot_df: pd.DataFrame,
+    size_title: str = "Order Size Histogram",
+    price_title: str = "Order Price Histogram",
+    save: bool = False,
 ):
-    """Plot side-by-side histograms for order sizes and order price levels from a snapshot."""
+    """Plot side-by-side histograms for order sizes and order price levels from a snapshot.
+
+    Args:
+        snapshot_df (pd.DataFrame): DataFrame containing the snapshot data.
+        size_title (str, optional): Title for the order size histogram. Defaults to "Order Size Histogram".
+        price_title (str, optional): Title for the order price histogram. Defaults to "Order Price Histogram".
+        save (_type_, optional): _description_. Defaults to False.
+    """
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
     # Order Size Histogram
@@ -186,7 +236,18 @@ def plot_order_size_and_price_hists(
         print(f"Saved order size and price histograms as {filename}")
 
 
-def plot_book_drawdown(book_metrics_df, title="Mid Price Drawdown Curve", save=False):
+def plot_book_drawdown(
+    book_metrics_df: pd.DataFrame,
+    title: str = "Mid Price Drawdown Curve",
+    save: bool = False,
+):
+    """Plot the drawdown of the mid price over time.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the book metrics.
+        title (str, optional): Title of the plot. Defaults to "Mid Price Drawdown Curve".
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     fig, ax = plt.subplots(figsize=(12, 6))
 
     mid_prices = book_metrics_df["mid_price"].to_numpy()
@@ -225,8 +286,18 @@ def plot_book_drawdown(book_metrics_df, title="Mid Price Drawdown Curve", save=F
         print(f"Saved mid price drawdown plot as {filename}")
 
 
-def plot_book_all(book_metrics_df, snapshot_df=None, save=False):
-    """Convenience function to plot multiple key metrics."""
+def plot_book_all(
+    book_metrics_df: pd.DataFrame,
+    snapshot_df: pd.DataFrame | None = None,
+    save: bool = False,
+):
+    """Plot all relevant book metrics.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the book metrics.
+        snapshot_df (pd.DataFrame | None, optional): DataFrame containing the snapshot data. Defaults to None.
+        save (bool, optional): Whether to save the plots. Defaults to False.
+    """
     plot_price(book_metrics_df, save=save)
     plot_book_drawdown(book_metrics_df, save=save)
     plot_spread(book_metrics_df, save=save)
@@ -238,8 +309,19 @@ def plot_book_all(book_metrics_df, snapshot_df=None, save=False):
 
 
 def plot_equity_curve(
-    strategy_metrics_df, title="Equity Curve", strategy_id=None, save=False
+    strategy_metrics_df: pd.DataFrame,
+    title: str = "Equity Curve",
+    strategy_id: str | int | None = None,
+    save: bool = False,
 ):
+    """Plot the equity curve of a trading strategy.
+
+    Args:
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        title (str, optional): Title of the plot. Defaults to "Equity Curve".
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -264,7 +346,20 @@ def plot_equity_curve(
         print(f"Saved equity curve plot as {filename}")
 
 
-def plot_pnl(strategy_metrics_df, title="PnL Breakdown", strategy_id=None, save=False):
+def plot_pnl(
+    strategy_metrics_df: pd.DataFrame,
+    title: str = "PnL Breakdown",
+    strategy_id: str | int | None = None,
+    save: bool = False,
+):
+    """Plot the PnL breakdown of a trading strategy.
+
+    Args:
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        title (str, optional): Title of the plot. Defaults to "PnL Breakdown".
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -303,11 +398,19 @@ def plot_pnl(strategy_metrics_df, title="PnL Breakdown", strategy_id=None, save=
 
 
 def plot_inventory_and_cash(
-    strategy_metrics_df,
-    title="Cash & Inventory Evolution",
-    strategy_id=None,
-    save=False,
+    strategy_metrics_df: pd.DataFrame,
+    title: str = "Cash & Inventory Evolution",
+    strategy_id: str | int | None = None,
+    save: bool = False,
 ):
+    """Plot the cash and inventory evolution of a trading strategy.
+
+    Args:
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        title (str, optional): Title of the plot. Defaults to "Cash & Inventory Evolution".
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -345,8 +448,19 @@ def plot_inventory_and_cash(
 
 
 def plot_strategy_drawdown(
-    strategy_metrics_df, title="Drawdown Curve", strategy_id=None, save=False
+    strategy_metrics_df: pd.DataFrame,
+    title: str = "Drawdown Curve",
+    strategy_id: str | int | None = None,
+    save: bool = False,
 ):
+    """Plot the drawdown curve of a trading strategy.
+
+    Args:
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        title (str, optional): Title of the plot. Defaults to "Drawdown Curve".
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -389,8 +503,19 @@ def plot_strategy_drawdown(
 
 
 def plot_return_histogram(
-    strategy_metrics_df, title="Distribution of Returns", strategy_id=None, save=False
+    strategy_metrics_df: pd.DataFrame,
+    title: str = "Distribution of Returns",
+    strategy_id: str | int | None = None,
+    save: bool = False,
 ):
+    """Plot the distribution of returns for a trading strategy.
+
+    Args:
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        title (str, optional): Title of the plot. Defaults to "Distribution of Returns".
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plot. Defaults to False.
+    """
     if strategy_id is not None:
         title = f"{title} - {strategy_id}"
 
@@ -415,8 +540,18 @@ def plot_return_histogram(
         print(f"Saved return histogram plot as {filename}")
 
 
-def plot_strategy_all(strategy_metrics_df, strategy_id=None, save=False):
-    """Convenience function to plot strategy performance metrics."""
+def plot_strategy_all(
+    strategy_metrics_df: pd.DataFrame,
+    strategy_id: str | int | None = None,
+    save: bool = False,
+):
+    """Plot all relevant metrics for a trading strategy.
+
+    Args:
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plots. Defaults to False.
+    """
     plot_equity_curve(strategy_metrics_df, strategy_id=strategy_id, save=save)
     plot_pnl(strategy_metrics_df, strategy_id=strategy_id, save=save)
     plot_inventory_and_cash(strategy_metrics_df, strategy_id=strategy_id, save=save)
@@ -425,8 +560,20 @@ def plot_strategy_all(strategy_metrics_df, strategy_id=None, save=False):
 
 
 def plot_all(
-    book_metrics_df, strategy_metrics_df, strategy_id=None, snapshot_df=None, save=False
+    book_metrics_df: pd.DataFrame,
+    snapshot_df: pd.DataFrame | None,
+    strategy_metrics_df: pd.DataFrame,
+    strategy_id: str | int | None = None,
+    save: bool = False,
 ):
-    """Convenience function to plot both book and strategy metrics."""
+    """Plot all relevant metrics for a trading strategy.
+
+    Args:
+        book_metrics_df (pd.DataFrame): DataFrame containing the book metrics.
+        snapshot_df (pd.DataFrame | None): DataFrame containing the snapshot metrics.
+        strategy_metrics_df (pd.DataFrame): DataFrame containing the strategy metrics.
+        strategy_id (str | int | None, optional): ID of the strategy. Defaults to None.
+        save (bool, optional): Whether to save the plots. Defaults to False.
+    """
     plot_book_all(book_metrics_df, snapshot_df, save=save)
     plot_strategy_all(strategy_metrics_df, strategy_id=strategy_id, save=save)
