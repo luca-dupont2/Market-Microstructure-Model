@@ -14,9 +14,9 @@ class SymmetricMaker(BaseStrategy):
         self,
         execution_strategy: ExecutionStrategy,
         config: dict,
-        quote_size: int = 10,
-        max_inventory: int = 100,
-        quote_update_interval: int = 10,  # in multiples of dt
+        quote_size: int | None = None,
+        max_inventory: int | None = None,
+        quote_update_interval: int | None = None,  # in multiples of dt
         **kwargs,
     ):
         """Initialize the symmetric market maker strategy.
@@ -29,12 +29,20 @@ class SymmetricMaker(BaseStrategy):
             quote_update_interval (int, optional): The quote update interval. Defaults to 10.
         """
         super().__init__(execution_strategy, **kwargs)
-        self.quote_size = quote_size
-        self.max_inventory = max_inventory
+        self.quote_size = (
+            quote_size or config["STRATEGY_PARAMS"]["market_maker"]["quote_size"]
+        )
+        self.max_inventory = (
+            max_inventory
+            or config["STRATEGY_PARAMS"]["market_maker"]["inventory_limit"]
+        )
 
         self.dt = config["SIM_PARAMS"]["dt"]
         self.tick_size = config["SIM_PARAMS"]["tick_size"]
-        self.quote_update_interval = quote_update_interval * self.dt
+        self.quote_update_interval = (
+            quote_update_interval
+            or config["STRATEGY_PARAMS"]["market_maker"]["quote_update_interval"]
+        ) * self.dt
 
         self.quotes = {"bid": [], "ask": []}
 
@@ -177,7 +185,7 @@ class SymmetricMaker(BaseStrategy):
 #! TODO: Implement Avellaneda-Stoikov model
 #! CLASS NOT IMPLEMENTED YET
 # Market making strategy with Avellaneda-Stoikov pricing model
-class InventoryMaker(SymmetricMaker): 
+class InventoryMaker(SymmetricMaker):
     def __init__(
         self,
         execution_strategy: ExecutionStrategy,
