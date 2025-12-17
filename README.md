@@ -128,6 +128,16 @@ The simulator automatically records useful metrics for each strategy and for the
 -   Sharpe Ratio
 -   Max Drawdown
 
+
+
+
+<div style="display: flex; gap: 10px;">
+  <img src="/images/price_evolution_20250925_140830.png" width="400" height="300">
+  <img src="/images/return_histogram_20250925_140835.png" width="400" height="200">
+  <img src="/images/strategy_drawdown_20250925_140835.png" width="400" height="300">
+  <img src="/images/order_book_depth_20250925_140833.png" width="400" height="300">
+</div>
+
 ## Installation
 
 ```bash
