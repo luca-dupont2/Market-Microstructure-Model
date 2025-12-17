@@ -131,7 +131,7 @@ The simulator automatically records useful metrics for each strategy and for the
 ## Installation
 
 ```bash
-git clone https://github.com/luca-dupont2/market-microstructure.git
+git clone https://github.com/luca-dupont2/Market-Microstructure-Model.git
 cd market-microstructure
 pip install -r requirements.txt
 ```
